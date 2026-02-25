@@ -47,7 +47,25 @@ const Index = () => {
   };
 
   const handleGerarJogos = (quantidade: number, balancear: boolean) => {
-    const jogos = gerarJogosLotofacil(quantidade, fixedNumbers, balancear);
+    const jogos: JogoGerado[] = [];
+
+    // Se houver números selecionados (modo "Números"), eles formam o primeiro jogo
+    if (selectedNumbers.length >= 15) {
+      const primeiroJogo = selectedNumbers.slice(0, 15).sort((a, b) => a - b);
+      jogos.push({ id: 1, numeros: primeiroJogo });
+    }
+
+    const restantes = gerarJogosLotofacil(
+      Math.max(1, quantidade - jogos.length),
+      fixedNumbers,
+      balancear
+    );
+
+    // Reindexar os jogos gerados
+    restantes.forEach((j, i) => {
+      jogos.push({ id: jogos.length + i + 1, numeros: j.numeros });
+    });
+
     setJogosGerados(jogos);
   };
 
