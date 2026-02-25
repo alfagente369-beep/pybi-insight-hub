@@ -21,12 +21,15 @@ const Index = () => {
   const [resultados, setResultados] = useState<ResultadoLotofacil[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
   const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
+  const [palpiteNumbers, setPalpiteNumbers] = useState<number[]>([]);
+  const [palpiteImpar, setPalpiteImpar] = useState(0);
+  const [palpitePar, setPalpitePar] = useState(0);
 
   const sincronizar = useCallback(async () => {
     setLoadingResultados(true);
-    const data = await buscarUltimosResultados(33);
+    const data = await buscarUltimosResultados(66);
     setResultados(data);
-    setEstatisticas(calcularQuentesFrios(data));
+    setEstatisticas(calcularQuentesFrios(data.slice(0, 33)));
     setLoadingResultados(false);
   }, []);
 
@@ -46,6 +49,12 @@ const Index = () => {
     );
   };
 
+  const handlePalpiteChange = useCallback((palpites: number[], qtdImpar: number, qtdPar: number) => {
+    setPalpiteNumbers(palpites);
+    setPalpiteImpar(qtdImpar);
+    setPalpitePar(qtdPar);
+  }, []);
+
   const handleGerarJogos = (quantidade: number, balancear: boolean) => {
     const jogos: JogoGerado[] = [];
 
@@ -55,13 +64,15 @@ const Index = () => {
       jogos.push({ id: 1, numeros: primeiroJogo });
     }
 
+    // Gerar jogos com palpites como fixos (merged com fixedNumbers manuais)
+    const fixosParaGerar = [...new Set([...palpiteNumbers, ...fixedNumbers])];
+
     const restantes = gerarJogosLotofacil(
       Math.max(1, quantidade - jogos.length),
-      fixedNumbers,
+      fixosParaGerar,
       balancear
     );
 
-    // Reindexar os jogos gerados
     restantes.forEach((j, i) => {
       jogos.push({ id: jogos.length + i + 1, numeros: j.numeros });
     });
@@ -89,7 +100,7 @@ const Index = () => {
           <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} estatisticas={estatisticas} />
         </div>
         <div className="lg:col-span-1">
-          <PalpiteSection />
+          <PalpiteSection resultados={resultados} onPalpiteChange={handlePalpiteChange} />
         </div>
         <div className="lg:col-span-1">
           <UltimosResultados

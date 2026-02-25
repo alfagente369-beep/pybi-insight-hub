@@ -80,7 +80,7 @@ export function downloadCSV(jogos: JogoGerado[]) {
   URL.revokeObjectURL(url);
 }
 
-export async function buscarUltimosResultados(quantidade = 33): Promise<ResultadoLotofacil[]> {
+export async function buscarUltimosResultados(quantidade = 66): Promise<ResultadoLotofacil[]> {
   const resultados: ResultadoLotofacil[] = [];
   try {
     // Buscar o último concurso primeiro
@@ -128,6 +128,34 @@ export interface EstatisticasNumeros {
   quentes: number[];
   frios: number[];
   nunca: number[];
+}
+
+export type FontePalpite = "primeiros33de66" | "ultimos33" | "todos66";
+
+export function calcularTop5(resultados: ResultadoLotofacil[], fonte: FontePalpite): number[] {
+  let subset: ResultadoLotofacil[];
+  if (fonte === "primeiros33de66") {
+    // "primeiros 33 dos últimos 66" = os mais antigos (posições 33..65)
+    subset = resultados.slice(33, 66);
+  } else if (fonte === "ultimos33") {
+    subset = resultados.slice(0, 33);
+  } else {
+    subset = resultados;
+  }
+
+  const freq = new Map<number, number>();
+  for (let i = 1; i <= 25; i++) freq.set(i, 0);
+  for (const r of subset) {
+    for (const n of r.numeros) {
+      freq.set(n, (freq.get(n) || 0) + 1);
+    }
+  }
+
+  return Array.from(freq.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([num]) => num)
+    .sort((a, b) => a - b);
 }
 
 export function calcularQuentesFrios(resultados: ResultadoLotofacil[]): EstatisticasNumeros {
