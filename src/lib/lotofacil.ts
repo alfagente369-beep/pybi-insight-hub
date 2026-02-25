@@ -12,9 +12,11 @@ export interface ResultadoLotofacil {
 export function gerarJogosLotofacil(
   quantidade: number,
   fixos: number[],
-  balancear: boolean
+  balancear: boolean,
+  tamanho: number = 15
 ): JogoGerado[] {
   const jogos: JogoGerado[] = [];
+  const size = Math.max(15, Math.min(17, tamanho));
 
   for (let i = 0; i < quantidade; i++) {
     let numeros = [...fixos];
@@ -29,8 +31,8 @@ export function gerarJogosLotofacil(
 
     if (balancear) {
       const oddFixed = numeros.filter((n) => n % 2 !== 0).length;
-      const targetOdd = Math.random() > 0.5 ? 7 : 8;
-      const targetEven = 15 - targetOdd;
+      const targetOdd = Math.round(size * (Math.random() > 0.5 ? 7 : 8) / 15);
+      const targetEven = size - targetOdd;
       const needOdd = Math.max(0, targetOdd - oddFixed);
       const needEven = Math.max(0, targetEven - (numeros.length - oddFixed));
 
@@ -39,15 +41,15 @@ export function gerarJogosLotofacil(
 
       numeros = [...numeros, ...oddPool.slice(0, needOdd), ...evenPool.slice(0, needEven)];
 
-      if (numeros.length < 15) {
+      if (numeros.length < size) {
         const remaining = disponiveis.filter((n) => !numeros.includes(n));
-        numeros = [...numeros, ...remaining.slice(0, 15 - numeros.length)];
+        numeros = [...numeros, ...remaining.slice(0, size - numeros.length)];
       }
     } else {
-      numeros = [...numeros, ...disponiveis.slice(0, 15 - numeros.length)];
+      numeros = [...numeros, ...disponiveis.slice(0, size - numeros.length)];
     }
 
-    numeros = numeros.slice(0, 15).sort((a, b) => a - b);
+    numeros = numeros.slice(0, size).sort((a, b) => a - b);
     jogos.push({ id: i + 1, numeros });
   }
 
@@ -62,7 +64,8 @@ export function calcularEstatisticas(numeros: number[]) {
 }
 
 export function jogosParaCSV(jogos: JogoGerado[]): string {
-  const header = Array.from({ length: 15 }, (_, i) => `N${i + 1}`).join(",");
+  const maxCols = jogos.reduce((max, j) => Math.max(max, j.numeros.length), 15);
+  const header = Array.from({ length: maxCols }, (_, i) => `N${i + 1}`).join(",");
   const rows = jogos.map((j) =>
     j.numeros.map((n) => String(n).padStart(2, "0")).join(",")
   );
@@ -175,10 +178,13 @@ export function calcularQuentesFrios(resultados: ResultadoLotofacil[]): Estatist
   const frios: number[] = [];
   const nunca: number[] = [];
 
+  // Frios = abaixo de 75% da média, Quentes = acima da média
+  const limiarFrio = media * 0.75;
+
   for (let i = 1; i <= 25; i++) {
     const f = freq.get(i) || 0;
     if (f === 0) nunca.push(i);
-    else if (f <= 6) frios.push(i);
+    else if (f <= limiarFrio) frios.push(i);
     else if (f >= media) quentes.push(i);
   }
 

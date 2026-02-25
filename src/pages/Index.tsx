@@ -55,22 +55,27 @@ const Index = () => {
     setPalpitePar(qtdPar);
   }, []);
 
-  const handleGerarJogos = (quantidade: number, balancear: boolean) => {
+  const handleGerarJogos = (quantidade: number, balancear: boolean, fonte: "selecao" | "palpite" = "selecao", tamanho: number = 15) => {
     const jogos: JogoGerado[] = [];
 
-    // Se houver números selecionados (modo "Números"), eles formam o primeiro jogo
-    if (selectedNumbers.length >= 15) {
-      const primeiroJogo = selectedNumbers.slice(0, 15).sort((a, b) => a - b);
-      jogos.push({ id: 1, numeros: primeiroJogo });
+    // Determinar fixos com base na fonte
+    let fixosParaGerar: number[] = [];
+    if (fonte === "palpite") {
+      fixosParaGerar = [...new Set([...palpiteNumbers, ...fixedNumbers])];
+    } else {
+      // Fonte = seleção inteligente
+      if (selectedNumbers.length >= tamanho) {
+        const primeiroJogo = selectedNumbers.slice(0, tamanho).sort((a, b) => a - b);
+        jogos.push({ id: 1, numeros: primeiroJogo });
+      }
+      fixosParaGerar = [...new Set([...fixedNumbers])];
     }
-
-    // Gerar jogos com palpites como fixos (merged com fixedNumbers manuais)
-    const fixosParaGerar = [...new Set([...palpiteNumbers, ...fixedNumbers])];
 
     const restantes = gerarJogosLotofacil(
       Math.max(1, quantidade - jogos.length),
       fixosParaGerar,
-      balancear
+      balancear,
+      tamanho
     );
 
     restantes.forEach((j, i) => {
