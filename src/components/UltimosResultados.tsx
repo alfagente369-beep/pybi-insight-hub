@@ -1,21 +1,12 @@
-import { useState, useEffect } from "react";
-import { buscarUltimosResultados, type ResultadoLotofacil } from "@/lib/lotofacil";
+import { type ResultadoLotofacil } from "@/lib/lotofacil";
 
-const UltimosResultados = () => {
-  const [resultados, setResultados] = useState<ResultadoLotofacil[]>([]);
-  const [loading, setLoading] = useState(false);
+interface UltimosResultadosProps {
+  resultados: ResultadoLotofacil[];
+  loading: boolean;
+  onSincronizar: () => void;
+}
 
-  const sincronizar = async () => {
-    setLoading(true);
-    const data = await buscarUltimosResultados();
-    setResultados(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    sincronizar();
-  }, []);
-
+const UltimosResultados = ({ resultados, loading, onSincronizar }: UltimosResultadosProps) => {
   return (
     <div className="bg-card rounded-lg p-4 card-yellow">
       <h3 className="font-heading text-sm font-bold mb-3 text-foreground">
@@ -31,17 +22,12 @@ const UltimosResultados = () => {
           {resultados.map((r) => (
             <div key={r.concurso}>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-heading text-primary font-bold">
-                  #{r.concurso}
-                </span>
+                <span className="text-xs font-heading text-primary font-bold">#{r.concurso}</span>
                 <span className="text-xs text-muted-foreground">{r.data}</span>
               </div>
               <div className="flex flex-wrap gap-1">
                 {r.numeros.map((n) => (
-                  <span
-                    key={n}
-                    className="number-ball number-ball-selected !w-7 !h-7 text-xs"
-                  >
+                  <span key={n} className="number-ball number-ball-selected !w-7 !h-7 text-xs">
                     {String(n).padStart(2, "0")}
                   </span>
                 ))}
@@ -52,7 +38,7 @@ const UltimosResultados = () => {
       )}
 
       <button
-        onClick={sincronizar}
+        onClick={onSincronizar}
         disabled={loading}
         className="mt-3 flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
       >

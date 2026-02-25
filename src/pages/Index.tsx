@@ -1,15 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import SelecaoInteligente from "@/components/SelecaoInteligente";
 import PalpiteSection from "@/components/PalpiteSection";
 import UltimosResultados from "@/components/UltimosResultados";
 import TrupacosList from "@/components/TrupacosList";
 import EstrategiaJogo from "@/components/EstrategiaJogo";
 import ConferenciaRapida from "@/components/ConferenciaRapida";
-import { gerarJogosLotofacil, type JogoGerado } from "@/lib/lotofacil";
+import {
+  gerarJogosLotofacil,
+  buscarUltimosResultados,
+  type JogoGerado,
+  type ResultadoLotofacil,
+} from "@/lib/lotofacil";
 
 const Index = () => {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [jogosGerados, setJogosGerados] = useState<JogoGerado[]>([]);
+  const [resultados, setResultados] = useState<ResultadoLotofacil[]>([]);
+  const [loadingResultados, setLoadingResultados] = useState(false);
+
+  const sincronizar = useCallback(async () => {
+    setLoadingResultados(true);
+    const data = await buscarUltimosResultados();
+    setResultados(data);
+    setLoadingResultados(false);
+  }, []);
+
+  useEffect(() => {
+    sincronizar();
+  }, [sincronizar]);
 
   const toggleNumber = (num: number) => {
     setSelectedNumbers((prev) =>
@@ -21,6 +39,8 @@ const Index = () => {
     const jogos = gerarJogosLotofacil(quantidade, selectedNumbers, balancear);
     setJogosGerados(jogos);
   };
+
+  const ultimoResultado = resultados.length > 0 ? resultados[0].numeros : [];
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -43,7 +63,11 @@ const Index = () => {
           <PalpiteSection />
         </div>
         <div className="lg:col-span-1">
-          <UltimosResultados />
+          <UltimosResultados
+            resultados={resultados}
+            loading={loadingResultados}
+            onSincronizar={sincronizar}
+          />
         </div>
         <div className="lg:col-span-1">
           <TrupacosList jogos={jogosGerados} />
@@ -52,7 +76,7 @@ const Index = () => {
           <EstrategiaJogo onGerarJogos={handleGerarJogos} jogosGerados={jogosGerados} />
         </div>
         <div className="lg:col-span-1">
-          <ConferenciaRapida />
+          <ConferenciaRapida jogos={jogosGerados} resultadoSorteado={ultimoResultado} />
         </div>
       </div>
     </div>
