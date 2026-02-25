@@ -116,6 +116,11 @@
     background: hsl(var(--cyan));
     color: hsl(var(--primary-foreground));
   }
+  .number-ball-never {
+    background: hsl(var(--purple));
+    color: hsl(var(--accent-foreground));
+    box-shadow: 0 0 8px hsl(var(--purple) / 0.4);
+  }
   .glow-button {
     background: linear-gradient(135deg, hsl(var(--purple)), hsl(var(--cyan)));
     box-shadow: 0 0 20px hsl(var(--purple) / 0.4), 0 0 40px hsl(var(--cyan) / 0.2);
