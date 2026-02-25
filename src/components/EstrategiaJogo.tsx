@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-const EstrategiaJogo = () => {
+interface EstrategiaJogoProps {
+  onGerarJogos: (quantidade: number, balancear: boolean) => void;
+}
+
+const EstrategiaJogo = ({ onGerarJogos }: EstrategiaJogoProps) => {
   const [quantidade, setQuantidade] = useState(1);
   const [balancear, setBalancear] = useState(true);
 
@@ -11,12 +15,9 @@ const EstrategiaJogo = () => {
       <p className="text-sm text-muted-foreground mb-2">Quantidade de Jogos</p>
 
       <div className="flex items-center gap-2 mb-4">
-        <input
-          type="text"
-          value={`Quantidade`}
-          readOnly
-          className="flex-1 h-9 bg-muted border border-border rounded px-3 text-sm text-muted-foreground outline-none"
-        />
+        <span className="flex-1 h-9 bg-muted border border-border rounded px-3 text-sm text-foreground flex items-center font-bold">
+          {quantidade}
+        </span>
         <button
           onClick={() => setQuantidade(Math.max(1, quantidade - 1))}
           className="w-8 h-8 rounded bg-muted border border-border text-foreground flex items-center justify-center hover:bg-border transition-colors"
@@ -46,7 +47,9 @@ const EstrategiaJogo = () => {
       <p className="text-sm text-muted-foreground mb-4">Balancear Ímpares/Pares</p>
 
       <div className="flex justify-center mb-4">
-        <button className="glow-button">GERAR JOGOS</button>
+        <button className="glow-button" onClick={() => onGerarJogos(quantidade, balancear)}>
+          GERAR JOGOS
+        </button>
       </div>
 
       <div className="flex gap-2">
