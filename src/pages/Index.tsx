@@ -5,9 +5,11 @@ import UltimosResultados from "@/components/UltimosResultados";
 import TrupacosList from "@/components/TrupacosList";
 import EstrategiaJogo from "@/components/EstrategiaJogo";
 import ConferenciaRapida from "@/components/ConferenciaRapida";
+import { gerarJogosLotofacil, type JogoGerado } from "@/lib/lotofacil";
 
 const Index = () => {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([1]);
+  const [jogosGerados, setJogosGerados] = useState<JogoGerado[]>([]);
 
   const toggleNumber = (num: number) => {
     setSelectedNumbers((prev) =>
@@ -15,9 +17,13 @@ const Index = () => {
     );
   };
 
+  const handleGerarJogos = (quantidade: number, balancear: boolean) => {
+    const jogos = gerarJogosLotofacil(quantidade, selectedNumbers, balancear);
+    setJogosGerados(jogos);
+  };
+
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      {/* Header */}
       <div className="text-center mb-6">
         <div className="inline-block bg-card border border-border rounded-xl px-8 py-3">
           <h1 className="font-heading text-2xl md:text-3xl font-black text-primary tracking-wider">
@@ -29,9 +35,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Main Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Row 1 */}
         <div className="lg:col-span-1">
           <SelecaoInteligente selected={selectedNumbers} onToggle={toggleNumber} />
         </div>
@@ -41,13 +45,11 @@ const Index = () => {
         <div className="lg:col-span-1">
           <UltimosResultados />
         </div>
-
-        {/* Row 2 */}
         <div className="lg:col-span-1">
-          <TrupacosList />
+          <TrupacosList jogos={jogosGerados} />
         </div>
         <div className="lg:col-span-1">
-          <EstrategiaJogo />
+          <EstrategiaJogo onGerarJogos={handleGerarJogos} />
         </div>
         <div className="lg:col-span-1">
           <ConferenciaRapida />
