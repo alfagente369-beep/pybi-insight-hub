@@ -1,36 +1,63 @@
-const ultimosResultados = [
-  { concurso: "Último", numeros: [1, 3, 9, 10, 18, 21, 23, 24, 25] },
-];
-
-const historico = [
-  "01 03,5,5,6,7,8,9,10,17 21,22,24,15",
-  "1,2,3,4,5,6,7,8,9,10,21,22,13,25",
-];
+import { useState, useEffect } from "react";
+import { buscarUltimosResultados, type ResultadoLotofacil } from "@/lib/lotofacil";
 
 const UltimosResultados = () => {
+  const [resultados, setResultados] = useState<ResultadoLotofacil[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const sincronizar = async () => {
+    setLoading(true);
+    const data = await buscarUltimosResultados();
+    setResultados(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    sincronizar();
+  }, []);
+
   return (
     <div className="bg-card rounded-lg p-4 card-yellow">
       <h3 className="font-heading text-sm font-bold mb-3 text-foreground">
-        <span className="text-primary">Últimos</span>{" "}
-        <span className="text-muted-foreground text-xs">
-          01 03,09,89,10,18,21,23,24,25
-        </span>
+        <span className="text-primary">Últimos Resultados</span>
       </h3>
 
-      <div className="space-y-2">
-        {historico.map((line, i) => (
-          <div
-            key={i}
-            className="bg-muted rounded-lg px-3 py-2 text-sm text-muted-foreground font-mono"
-          >
-            {line}
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <p className="text-sm text-muted-foreground animate-pulse">Carregando...</p>
+      ) : resultados.length === 0 ? (
+        <p className="text-sm text-muted-foreground italic">Nenhum resultado carregado.</p>
+      ) : (
+        <div className="space-y-3">
+          {resultados.map((r) => (
+            <div key={r.concurso}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-heading text-primary font-bold">
+                  #{r.concurso}
+                </span>
+                <span className="text-xs text-muted-foreground">{r.data}</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {r.numeros.map((n) => (
+                  <span
+                    key={n}
+                    className="number-ball number-ball-selected !w-7 !h-7 text-xs"
+                  >
+                    {String(n).padStart(2, "0")}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <button className="mt-3 flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
+      <button
+        onClick={sincronizar}
+        disabled={loading}
+        className="mt-3 flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+      >
         <span className="w-2 h-2 rounded-full bg-secondary inline-block" />
-        Sincronizar Dados
+        {loading ? "Sincronizando..." : "Sincronizar Dados"}
       </button>
     </div>
   );
