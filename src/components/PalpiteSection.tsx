@@ -41,7 +41,7 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
   return (
     <div className="bg-card rounded-lg p-4 card-red">
       <h3 className="font-heading text-sm font-bold mb-3 text-foreground text-center uppercase tracking-wider">
-        Palpite Inteligente
+        Palpite de Fechamento
       </h3>
 
       <div className="mb-3">

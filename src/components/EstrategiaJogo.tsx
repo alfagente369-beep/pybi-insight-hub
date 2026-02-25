@@ -27,8 +27,8 @@ const EstrategiaJogo = ({ onGerarJogos, jogosGerados }: EstrategiaJogoProps) => 
         </label>
         <div className="flex gap-3">
           {([
-            { key: "selecao" as FonteGeracao, label: "Seleção Inteligente" },
-            { key: "palpite" as FonteGeracao, label: "Palpite Inteligente" },
+            { key: "selecao" as FonteGeracao, label: "Fechamento Inteligente" },
+            { key: "palpite" as FonteGeracao, label: "Palpite de Fechamento" },
           ]).map((f) => (
             <label key={f.key} className="flex items-center gap-1.5 cursor-pointer text-sm" onClick={() => setFonte(f.key)}>
               <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${fonte === f.key ? "border-secondary bg-secondary" : "border-muted-foreground"}`}>

@@ -92,7 +92,7 @@ const Index = () => {
       <div className="text-center mb-6">
         <div className="inline-block bg-card border border-border rounded-xl px-8 py-3">
           <h1 className="font-heading text-2xl md:text-3xl font-black text-primary tracking-wider">
-            LOTOFACIL PRO
+            FECHAMENTO LOTOFACIL
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gerador Inteligente de Fechamentos
