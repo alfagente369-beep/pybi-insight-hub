@@ -8,7 +8,7 @@ import ConferenciaRapida from "@/components/ConferenciaRapida";
 import { gerarJogosLotofacil, type JogoGerado } from "@/lib/lotofacil";
 
 const Index = () => {
-  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([1]);
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [jogosGerados, setJogosGerados] = useState<JogoGerado[]>([]);
 
   const toggleNumber = (num: number) => {
@@ -49,7 +49,7 @@ const Index = () => {
           <TrupacosList jogos={jogosGerados} />
         </div>
         <div className="lg:col-span-1">
-          <EstrategiaJogo onGerarJogos={handleGerarJogos} />
+          <EstrategiaJogo onGerarJogos={handleGerarJogos} jogosGerados={jogosGerados} />
         </div>
         <div className="lg:col-span-1">
           <ConferenciaRapida />
