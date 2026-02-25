@@ -14,6 +14,7 @@ import {
 
 const Index = () => {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+  const [fixedNumbers, setFixedNumbers] = useState<number[]>([]);
   const [jogosGerados, setJogosGerados] = useState<JogoGerado[]>([]);
   const [resultados, setResultados] = useState<ResultadoLotofacil[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
@@ -29,14 +30,20 @@ const Index = () => {
     sincronizar();
   }, [sincronizar]);
 
-  const toggleNumber = (num: number) => {
+  const toggleSelected = (num: number) => {
     setSelectedNumbers((prev) =>
       prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
     );
   };
 
+  const toggleFixed = (num: number) => {
+    setFixedNumbers((prev) =>
+      prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
+    );
+  };
+
   const handleGerarJogos = (quantidade: number, balancear: boolean) => {
-    const jogos = gerarJogosLotofacil(quantidade, selectedNumbers, balancear);
+    const jogos = gerarJogosLotofacil(quantidade, fixedNumbers, balancear);
     setJogosGerados(jogos);
   };
 
@@ -57,7 +64,7 @@ const Index = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1">
-          <SelecaoInteligente selected={selectedNumbers} onToggle={toggleNumber} />
+          <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} />
         </div>
         <div className="lg:col-span-1">
           <PalpiteSection />
