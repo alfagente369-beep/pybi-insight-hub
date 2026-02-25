@@ -80,25 +80,79 @@ export function downloadCSV(jogos: JogoGerado[]) {
   URL.revokeObjectURL(url);
 }
 
-export async function buscarUltimosResultados(): Promise<ResultadoLotofacil[]> {
+export async function buscarUltimosResultados(quantidade = 33): Promise<ResultadoLotofacil[]> {
+  const resultados: ResultadoLotofacil[] = [];
   try {
-    const res = await fetch(
-      "https://loteriascaixa-api.herokuapp.com/api/lotofacil/latest"
-    );
+    // Buscar o último concurso primeiro
+    const res = await fetch("https://loteriascaixa-api.herokuapp.com/api/lotofacil/latest");
     if (!res.ok) throw new Error("API indisponível");
-    const data = await res.json();
-    
-    const resultado: ResultadoLotofacil = {
-      concurso: data.concurso,
-      data: data.data,
-      numeros: (data.dezenas as string[]).map(Number).sort((a, b) => a - b),
-    };
-    return [resultado];
+    const latest = await res.json();
+    const ultimoConcurso = latest.concurso as number;
+
+    resultados.push({
+      concurso: ultimoConcurso,
+      data: latest.data,
+      numeros: (latest.dezenas as string[]).map(Number).sort((a, b) => a - b),
+    });
+
+    // Buscar os anteriores em paralelo
+    const promises = [];
+    for (let i = 1; i < quantidade; i++) {
+      promises.push(
+        fetch(`https://loteriascaixa-api.herokuapp.com/api/lotofacil/${ultimoConcurso - i}`)
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      );
+    }
+    const others = await Promise.all(promises);
+    for (const data of others) {
+      if (data) {
+        resultados.push({
+          concurso: data.concurso,
+          data: data.data,
+          numeros: (data.dezenas as string[]).map(Number).sort((a, b) => a - b),
+        });
+      }
+    }
+
+    return resultados.sort((a, b) => b.concurso - a.concurso);
   } catch {
-    // Fallback: dados simulados
     return [
       { concurso: 3200, data: "2025-02-24", numeros: [1, 3, 5, 6, 7, 8, 9, 10, 13, 17, 18, 21, 22, 24, 25] },
       { concurso: 3199, data: "2025-02-22", numeros: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 21, 22, 24, 25] },
     ];
   }
+}
+
+export interface EstatisticasNumeros {
+  quentes: number[];
+  frios: number[];
+  nunca: number[];
+}
+
+export function calcularQuentesFrios(resultados: ResultadoLotofacil[]): EstatisticasNumeros {
+  const freq = new Map<number, number>();
+  for (let i = 1; i <= 25; i++) freq.set(i, 0);
+  
+  for (const r of resultados) {
+    for (const n of r.numeros) {
+      freq.set(n, (freq.get(n) || 0) + 1);
+    }
+  }
+
+  const total = resultados.length;
+  const media = (total * 15) / 25; // frequência média esperada
+  
+  const quentes: number[] = [];
+  const frios: number[] = [];
+  const nunca: number[] = [];
+
+  for (let i = 1; i <= 25; i++) {
+    const f = freq.get(i) || 0;
+    if (f === 0) nunca.push(i);
+    else if (f <= 6) frios.push(i);
+    else if (f >= media) quentes.push(i);
+  }
+
+  return { quentes, frios, nunca };
 }

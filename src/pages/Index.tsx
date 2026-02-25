@@ -8,8 +8,10 @@ import ConferenciaRapida from "@/components/ConferenciaRapida";
 import {
   gerarJogosLotofacil,
   buscarUltimosResultados,
+  calcularQuentesFrios,
   type JogoGerado,
   type ResultadoLotofacil,
+  type EstatisticasNumeros,
 } from "@/lib/lotofacil";
 
 const Index = () => {
@@ -18,11 +20,13 @@ const Index = () => {
   const [jogosGerados, setJogosGerados] = useState<JogoGerado[]>([]);
   const [resultados, setResultados] = useState<ResultadoLotofacil[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
+  const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
 
   const sincronizar = useCallback(async () => {
     setLoadingResultados(true);
-    const data = await buscarUltimosResultados();
+    const data = await buscarUltimosResultados(33);
     setResultados(data);
+    setEstatisticas(calcularQuentesFrios(data));
     setLoadingResultados(false);
   }, []);
 
@@ -64,7 +68,7 @@ const Index = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1">
-          <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} />
+          <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} estatisticas={estatisticas} />
         </div>
         <div className="lg:col-span-1">
           <PalpiteSection />

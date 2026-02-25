@@ -1,22 +1,18 @@
 import { useState } from "react";
 
+import type { EstatisticasNumeros } from "@/lib/lotofacil";
+
 const allNumbers = Array.from({ length: 25 }, (_, i) => i + 1);
 
 type ModeType = "numeros" | "fixos";
 type OverlayType = "quentes" | "frios" | null;
-
-// Números quentes: saíram muitas vezes nos últimos 33 resultados
-const hotNumbers = [1, 3, 4, 7, 8, 10, 13, 16, 20, 25];
-// Números frios: saíram em até 6 jogos dos últimos 33
-const coldNumbers = [2, 5, 9, 12, 14, 17, 19, 22, 23, 24];
-// Números que não saíram nenhuma vez nos últimos 33
-const neverNumbers = [6, 11, 15];
 
 interface SelecaoInteligenteProps {
   selectedNumbers: number[];
   fixedNumbers: number[];
   onToggleSelected: (n: number) => void;
   onToggleFixed: (n: number) => void;
+  estatisticas: EstatisticasNumeros;
 }
 
 const SelecaoInteligente = ({
@@ -24,6 +20,7 @@ const SelecaoInteligente = ({
   fixedNumbers,
   onToggleSelected,
   onToggleFixed,
+  estatisticas,
 }: SelecaoInteligenteProps) => {
   const [mode, setMode] = useState<ModeType>("numeros");
   const [overlay, setOverlay] = useState<OverlayType>(null);
@@ -54,10 +51,10 @@ const SelecaoInteligente = ({
 
     if (isSelected || isFixed) return "number-ball number-ball-selected";
 
-    if (overlay === "quentes" && hotNumbers.includes(num)) return "number-ball number-ball-hot";
+    if (overlay === "quentes" && estatisticas.quentes.includes(num)) return "number-ball number-ball-hot";
     if (overlay === "frios") {
-      if (neverNumbers.includes(num)) return "number-ball number-ball-never";
-      if (coldNumbers.includes(num)) return "number-ball number-ball-cold";
+      if (estatisticas.nunca.includes(num)) return "number-ball number-ball-never";
+      if (estatisticas.frios.includes(num)) return "number-ball number-ball-cold";
     }
 
     return "number-ball number-ball-default";
