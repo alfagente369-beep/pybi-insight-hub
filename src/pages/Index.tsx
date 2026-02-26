@@ -82,10 +82,10 @@ const Index = () => {
 
   const handleSelecaoModeChange = (mode: "numeros" | "fixos") => {
     setSelecaoMode(mode);
-    if (mode === "numeros") {
-      setFixedNumbers([]);
-    }
   };
+
+  const handleClearSelected = () => setSelectedNumbers([]);
+  const handleClearFixed = () => setFixedNumbers([]);
 
   const ultimoResultado = resultados.length > 0 ? resultados[0].numeros : [];
 
@@ -107,7 +107,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div className="lg:col-span-1 flex">
             <div className="w-full">
-              <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} onModeChange={handleSelecaoModeChange} />
+              <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} onModeChange={handleSelecaoModeChange} onClearSelected={handleClearSelected} onClearFixed={handleClearFixed} />
             </div>
           </div>
           <div className="lg:col-span-1 flex">
