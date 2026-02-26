@@ -16,6 +16,15 @@ import {
   type FontePalpite,
 } from "@/lib/lotofacil";
 import { distribuirNumerosInteligente } from "@/lib/fechamento";
+import { salvarModelo, listarModelos, excluirModelo, type ModeloEstrategia } from "@/lib/modelos";
+import { toast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Index = () => {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
@@ -27,6 +36,14 @@ const Index = () => {
   const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
   const [palpiteNumbers, setPalpiteNumbers] = useState<number[]>([]);
   const [fonte, setFonte] = useState<FontePalpite>("ultimos3");
+  const [modeloNome, setModeloNome] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [modelos, setModelos] = useState<ModeloEstrategia[]>([]);
+  const [showModelos, setShowModelos] = useState(false);
+
+  useEffect(() => {
+    setModelos(listarModelos());
+  }, []);
 
   const sincronizar = useCallback(async () => {
     setLoadingResultados(true);
@@ -88,6 +105,36 @@ const Index = () => {
   const handleClearSelected = () => setSelectedNumbers([]);
   const handleClearFixed = () => setFixedNumbers([]);
 
+  const handleSalvarModelo = () => {
+    if (!modeloNome.trim()) return;
+    salvarModelo({
+      nome: modeloNome.trim(),
+      selectedNumbers,
+      fixedNumbers,
+      selecaoMode,
+      fonte,
+    });
+    setModelos(listarModelos());
+    setModeloNome("");
+    setDialogOpen(false);
+    toast({ title: "Modelo salvo!", description: `"${modeloNome.trim()}" foi salvo com sucesso.` });
+  };
+
+  const handleCarregarModelo = (modelo: ModeloEstrategia) => {
+    setSelectedNumbers(modelo.selectedNumbers);
+    setFixedNumbers(modelo.fixedNumbers);
+    setSelecaoMode(modelo.selecaoMode);
+    setFonte(modelo.fonte as FontePalpite);
+    setShowModelos(false);
+    toast({ title: "Modelo carregado!", description: `"${modelo.nome}" foi aplicado.` });
+  };
+
+  const handleExcluirModelo = (id: string) => {
+    excluirModelo(id);
+    setModelos(listarModelos());
+    toast({ title: "Modelo excluído" });
+  };
+
   const ultimoResultado = resultados.length > 0 ? resultados[0].numeros : [];
 
   return (
@@ -123,9 +170,62 @@ const Index = () => {
               >
                 BAIXAR CSV
               </button>
-              <button className="flex-1 bg-muted hover:bg-border text-foreground text-sm py-2 rounded font-medium transition-colors">
-                SALVAR MODELO
-              </button>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <button className="flex-1 bg-muted hover:bg-border text-foreground text-sm py-2 rounded font-medium transition-colors">
+                    SALVAR MODELO
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-border">
+                  <DialogHeader>
+                    <DialogTitle className="text-foreground">Salvar Modelo de Estratégia</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Nome do modelo..."
+                      value={modeloNome}
+                      onChange={(e) => setModeloNome(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSalvarModelo()}
+                      className="w-full bg-muted border border-border rounded px-3 py-2 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Salva: {selectedNumbers.length} números, {fixedNumbers.length} fixos, modo {selecaoMode}
+                    </p>
+                    <button
+                      onClick={handleSalvarModelo}
+                      disabled={!modeloNome.trim()}
+                      className="w-full bg-secondary text-secondary-foreground py-2 rounded font-bold text-sm hover:bg-secondary/80 transition-colors disabled:opacity-40"
+                    >
+                      SALVAR
+                    </button>
+                  </div>
+                  {modelos.length > 0 && (
+                    <div className="mt-3 border-t border-border pt-3">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Modelos Salvos</p>
+                      <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                        {modelos.map((m) => (
+                          <div key={m.id} className="flex items-center justify-between bg-muted rounded px-3 py-1.5">
+                            <button
+                              onClick={() => handleCarregarModelo(m)}
+                              className="text-sm text-foreground hover:text-secondary transition-colors text-left flex-1"
+                            >
+                              <span className="font-medium">{m.nome}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{m.criadoEm}</span>
+                            </button>
+                            <button
+                              onClick={() => handleExcluirModelo(m.id)}
+                              className="text-muted-foreground hover:text-destructive text-xs ml-2 transition-colors"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
           <div className="lg:col-span-1 flex">
