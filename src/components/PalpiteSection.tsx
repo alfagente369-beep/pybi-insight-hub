@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { calcularTop5, type ResultadoLotofacil, type FontePalpite } from "@/lib/lotofacil";
+import { calcularTop5, calcularQuentesFrios, type ResultadoLotofacil, type FontePalpite, type EstatisticasNumeros } from "@/lib/lotofacil";
 
 interface PalpiteSectionProps {
   resultados: ResultadoLotofacil[];
-  onPalpiteChange: (palpites: number[], qtdImpar: number, qtdPar: number) => void;
+  onPalpiteChange: (palpites: number[]) => void;
 }
 
 const FONTES: { value: FontePalpite; label: string }[] = [
@@ -12,31 +12,48 @@ const FONTES: { value: FontePalpite; label: string }[] = [
   { value: "todos66", label: "Todos os 66 concursos" },
 ];
 
+type OverlayType = "quentes" | "frios" | null;
+
 const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) => {
   const [fonte, setFonte] = useState<FontePalpite>("primeiros33de66");
   const [palpites, setPalpites] = useState<number[]>([]);
-  const [qtdImpar, setQtdImpar] = useState(0);
-  const [qtdPar, setQtdPar] = useState(0);
+  const [overlay, setOverlay] = useState<OverlayType>(null);
+  const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
+
+  useEffect(() => {
+    if (resultados.length === 0) return;
+    setEstatisticas(calcularQuentesFrios(resultados.slice(0, 33)));
+  }, [resultados]);
 
   useEffect(() => {
     if (resultados.length === 0) return;
     const top5 = calcularTop5(resultados, fonte);
     setPalpites(top5);
-
-    const impares = top5.filter((n) => n % 2 !== 0).length;
-    const pares = top5.filter((n) => n % 2 === 0).length;
-    // Para um jogo de 15: distribuir proporcionalmente
-    const totalImpar = Math.round((impares / 5) * 15);
-    const totalPar = 15 - totalImpar;
-    setQtdImpar(totalImpar);
-    setQtdPar(totalPar);
   }, [resultados, fonte]);
 
   useEffect(() => {
     if (palpites.length > 0) {
-      onPalpiteChange(palpites, qtdImpar, qtdPar);
+      onPalpiteChange(palpites);
     }
-  }, [palpites, qtdImpar, qtdPar, onPalpiteChange]);
+  }, [palpites, onPalpiteChange]);
+
+  const handleOverlayChange = (newOverlay: OverlayType) => {
+    setOverlay(overlay === newOverlay ? null : newOverlay);
+  };
+
+  const getBallClass = (num: number) => {
+    if (overlay === "quentes" && estatisticas.quentes.includes(num)) return "number-ball number-ball-hot";
+    if (overlay === "frios") {
+      if (estatisticas.nunca.includes(num)) return "number-ball number-ball-never";
+      if (estatisticas.frios.includes(num)) return "number-ball number-ball-cold";
+    }
+    return "";
+  };
+
+  const overlays: { key: OverlayType; label: string }[] = [
+    { key: "quentes", label: "Números Quentes" },
+    { key: "frios", label: "Números Frios" },
+  ];
 
   return (
     <div className="bg-card rounded-lg p-4 card-red">
@@ -59,39 +76,48 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
         </select>
       </div>
 
-      <div className="grid grid-cols-5 gap-2 mb-4">
-        {palpites.map((p, i) => (
-          <div
-            key={i}
-            className="w-full h-12 bg-primary/20 border border-primary/40 rounded flex items-center justify-center text-primary font-bold text-lg"
-          >
-            {String(p).padStart(2, "0")}
-          </div>
+      {/* Overlay toggles - Quentes/Frios */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {overlays.map((o) => (
+          <label key={o.key} className="flex items-center gap-1.5 cursor-pointer text-sm" onClick={() => handleOverlayChange(o.key)}>
+            <span
+              className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                overlay === o.key
+                  ? o.key === "quentes" ? "border-orange bg-orange" : "border-cyan bg-cyan"
+                  : "border-muted-foreground"
+              }`}
+            >
+              {overlay === o.key && <span className="w-2 h-2 bg-primary-foreground rounded-sm" />}
+            </span>
+            <span className="text-muted-foreground">{o.label}</span>
+          </label>
         ))}
+      </div>
+
+      {overlay && (
+        <p className="text-xs text-muted-foreground mb-2 italic">
+          {overlay === "quentes" && "🔴 Quentes: mais sorteados nos últimos 33 concursos."}
+          {overlay === "frios" && "🔵 Frios: até 6x em 33 concursos. 🟣 Nunca saíram."}
+        </p>
+      )}
+
+      <div className="grid grid-cols-5 gap-2 mb-4">
+        {palpites.map((p, i) => {
+          const extraClass = getBallClass(p);
+          return (
+            <div
+              key={i}
+              className={extraClass || "w-full h-12 bg-primary/20 border border-primary/40 rounded flex items-center justify-center text-primary font-bold text-lg"}
+            >
+              {String(p).padStart(2, "0")}
+            </div>
+          );
+        })}
         {palpites.length === 0 && Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="w-full h-12 bg-muted border border-border rounded flex items-center justify-center text-muted-foreground">
             --
           </div>
         ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs text-muted-foreground uppercase tracking-wider font-heading block mb-1 text-center">
-            Quantidade de Ímpar
-          </label>
-          <div className="w-full h-10 bg-muted border border-border rounded flex items-center justify-center text-foreground font-bold">
-            {qtdImpar}
-          </div>
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground uppercase tracking-wider font-heading block mb-1 text-center">
-            Quantidade de Par
-          </label>
-          <div className="w-full h-10 bg-muted border border-border rounded flex items-center justify-center text-foreground font-bold">
-            {qtdPar}
-          </div>
-        </div>
       </div>
     </div>
   );
