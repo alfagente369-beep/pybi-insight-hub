@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { calcularMaisSaidos, calcularMenosSaidos, calcularQuentesFrios, type ResultadoLotofacil, type FontePalpite, type EstatisticasNumeros, type NumeroFrio, type NumeroQuente } from "@/lib/lotofacil";
+import { calcularMaisSaidos, calcularMenosSaidos, type ResultadoLotofacil, type FontePalpite, type NumeroFrio, type NumeroQuente } from "@/lib/lotofacil";
 
 interface PalpiteSectionProps {
   resultados: ResultadoLotofacil[];
@@ -14,19 +14,10 @@ const FONTES: { value: FontePalpite; label: string }[] = [
   { value: "ultimos10", label: "10 últimos jogos" },
 ];
 
-type OverlayType = "quentes" | "frios" | null;
-
 const PalpiteSection = ({ resultados, onPalpiteChange, fonte, onFonteChange }: PalpiteSectionProps) => {
   const [palpites, setPalpites] = useState<number[]>([]);
   const [maisSaidos, setMaisSaidos] = useState<NumeroQuente[]>([]);
   const [menosSaidos, setMenosSaidos] = useState<NumeroFrio[]>([]);
-  const [overlay, setOverlay] = useState<OverlayType>(null);
-  const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
-
-  useEffect(() => {
-    if (resultados.length === 0) return;
-    setEstatisticas(calcularQuentesFrios(resultados.slice(0, 33)));
-  }, [resultados]);
 
   useEffect(() => {
     if (resultados.length === 0) return;
@@ -41,24 +32,6 @@ const PalpiteSection = ({ resultados, onPalpiteChange, fonte, onFonteChange }: P
       onPalpiteChange(palpites);
     }
   }, [palpites, onPalpiteChange]);
-
-  const handleOverlayChange = (newOverlay: OverlayType) => {
-    setOverlay(overlay === newOverlay ? null : newOverlay);
-  };
-
-  const getBallClass = (num: number) => {
-    if (overlay === "quentes" && estatisticas.quentes.includes(num)) return "number-ball number-ball-hot";
-    if (overlay === "frios") {
-      if (estatisticas.nunca.includes(num)) return "number-ball number-ball-never";
-      if (estatisticas.frios.includes(num)) return "number-ball number-ball-cold";
-    }
-    return "";
-  };
-
-  const overlays: { key: OverlayType; label: string }[] = [
-    { key: "quentes", label: "Números Quentes" },
-    { key: "frios", label: "Números Frios" },
-  ];
 
   return (
     <div className="bg-card rounded-lg p-4 card-red h-full">
@@ -81,45 +54,17 @@ const PalpiteSection = ({ resultados, onPalpiteChange, fonte, onFonteChange }: P
         </select>
       </div>
 
-      {/* Overlay toggles - Quentes/Frios */}
-      <div className="flex flex-wrap gap-2 mb-3">
-        {overlays.map((o) => (
-          <label key={o.key} className="flex items-center gap-1.5 cursor-pointer text-sm" onClick={() => handleOverlayChange(o.key)}>
-            <span
-              className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                overlay === o.key
-                  ? o.key === "quentes" ? "border-orange bg-orange" : "border-cyan bg-cyan"
-                  : "border-muted-foreground"
-              }`}
-            >
-              {overlay === o.key && <span className="w-2 h-2 bg-primary-foreground rounded-sm" />}
-            </span>
-            <span className="text-muted-foreground">{o.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {overlay && (
-        <p className="text-xs text-muted-foreground mb-2 italic">
-          {overlay === "quentes" && "🔴 Quentes: mais sorteados nos últimos 33 concursos."}
-          {overlay === "frios" && "🔵 Frios: até 6x em 33 concursos. 🟣 Nunca saíram."}
-        </p>
-      )}
-
       <p className="text-xs text-muted-foreground mb-1 font-heading uppercase tracking-wider">Mais sorteados</p>
       <div className="grid grid-cols-5 gap-2 mb-2">
-        {maisSaidos.map((item, i) => {
-          const extraClass = getBallClass(item.numero);
-          return (
-            <div
-              key={i}
-              className={extraClass || "w-full h-12 bg-orange/20 border border-orange/60 rounded flex flex-col items-center justify-center"}
-            >
-              <span className="text-orange font-bold text-lg leading-none">{String(item.numero).padStart(2, "0")}</span>
-              <span className="text-[10px] text-orange/70 leading-none mt-0.5">{item.frequencia}x</span>
-            </div>
-          );
-        })}
+        {maisSaidos.map((item, i) => (
+          <div
+            key={i}
+            className="w-full h-12 bg-orange/20 border border-orange/60 rounded flex flex-col items-center justify-center"
+          >
+            <span className="text-orange font-bold text-lg leading-none">{String(item.numero).padStart(2, "0")}</span>
+            <span className="text-[10px] text-orange/70 leading-none mt-0.5">{item.frequencia}x</span>
+          </div>
+        ))}
         {maisSaidos.length === 0 && Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="w-full h-12 bg-muted border border-border rounded flex items-center justify-center text-muted-foreground">
             --
