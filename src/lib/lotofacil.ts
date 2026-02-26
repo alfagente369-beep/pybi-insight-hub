@@ -133,18 +133,11 @@ export interface EstatisticasNumeros {
   nunca: number[];
 }
 
-export type FontePalpite = "primeiros33de66" | "ultimos33" | "todos66";
+export type FontePalpite = "ultimos3" | "ultimos5" | "ultimos10";
 
 export function calcularTop5(resultados: ResultadoLotofacil[], fonte: FontePalpite): number[] {
-  let subset: ResultadoLotofacil[];
-  if (fonte === "primeiros33de66") {
-    // "primeiros 33 dos últimos 66" = os mais antigos (posições 33..65)
-    subset = resultados.slice(33, 66);
-  } else if (fonte === "ultimos33") {
-    subset = resultados.slice(0, 33);
-  } else {
-    subset = resultados;
-  }
+  const qty = fonte === "ultimos3" ? 3 : fonte === "ultimos5" ? 5 : 10;
+  const subset = resultados.slice(0, qty);
 
   const freq = new Map<number, number>();
   for (let i = 1; i <= 25; i++) freq.set(i, 0);

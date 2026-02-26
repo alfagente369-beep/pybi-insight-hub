@@ -7,15 +7,15 @@ interface PalpiteSectionProps {
 }
 
 const FONTES: { value: FontePalpite; label: string }[] = [
-  { value: "primeiros33de66", label: "Primeiros 33 dos últimos 66" },
-  { value: "ultimos33", label: "Últimos 33 concursos" },
-  { value: "todos66", label: "Todos os 66 concursos" },
+  { value: "ultimos3", label: "3 últimos jogos" },
+  { value: "ultimos5", label: "5 últimos jogos" },
+  { value: "ultimos10", label: "10 últimos jogos" },
 ];
 
 type OverlayType = "quentes" | "frios" | null;
 
 const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) => {
-  const [fonte, setFonte] = useState<FontePalpite>("primeiros33de66");
+  const [fonte, setFonte] = useState<FontePalpite>("ultimos3");
   const [palpites, setPalpites] = useState<number[]>([]);
   const [overlay, setOverlay] = useState<OverlayType>(null);
   const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
