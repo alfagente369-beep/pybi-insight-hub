@@ -12,6 +12,7 @@ import {
   type JogoGerado,
   type ResultadoLotofacil,
   type EstatisticasNumeros,
+  type FontePalpite,
 } from "@/lib/lotofacil";
 
 const Index = () => {
@@ -22,6 +23,7 @@ const Index = () => {
   const [loadingResultados, setLoadingResultados] = useState(false);
   const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
   const [palpiteNumbers, setPalpiteNumbers] = useState<number[]>([]);
+  const [fonte, setFonte] = useState<FontePalpite>("ultimos3");
 
   const sincronizar = useCallback(async () => {
     setLoadingResultados(true);
@@ -106,7 +108,7 @@ const Index = () => {
           </div>
           <div className="lg:col-span-1 flex">
             <div className="w-full">
-              <PalpiteSection resultados={resultados} onPalpiteChange={handlePalpiteChange} />
+              <PalpiteSection resultados={resultados} onPalpiteChange={handlePalpiteChange} fonte={fonte} onFonteChange={setFonte} />
             </div>
           </div>
           <div className="lg:col-span-1 flex">
@@ -115,6 +117,7 @@ const Index = () => {
                 resultados={resultados}
                 loading={loadingResultados}
                 onSincronizar={sincronizar}
+                fonte={fonte}
               />
             </div>
           </div>

@@ -4,6 +4,8 @@ import { calcularMaisSaidos, calcularMenosSaidos, calcularQuentesFrios, type Res
 interface PalpiteSectionProps {
   resultados: ResultadoLotofacil[];
   onPalpiteChange: (palpites: number[]) => void;
+  fonte: FontePalpite;
+  onFonteChange: (fonte: FontePalpite) => void;
 }
 
 const FONTES: { value: FontePalpite; label: string }[] = [
@@ -14,8 +16,7 @@ const FONTES: { value: FontePalpite; label: string }[] = [
 
 type OverlayType = "quentes" | "frios" | null;
 
-const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) => {
-  const [fonte, setFonte] = useState<FontePalpite>("ultimos3");
+const PalpiteSection = ({ resultados, onPalpiteChange, fonte, onFonteChange }: PalpiteSectionProps) => {
   const [palpites, setPalpites] = useState<number[]>([]);
   const [maisSaidos, setMaisSaidos] = useState<NumeroQuente[]>([]);
   const [menosSaidos, setMenosSaidos] = useState<NumeroFrio[]>([]);
@@ -71,7 +72,7 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
         </label>
         <select
           value={fonte}
-          onChange={(e) => setFonte(e.target.value as FontePalpite)}
+          onChange={(e) => onFonteChange(e.target.value as FontePalpite)}
           className="w-full h-9 bg-muted border border-border rounded text-sm text-foreground px-2 focus:ring-2 focus:ring-primary outline-none"
         >
           {FONTES.map((f) => (
