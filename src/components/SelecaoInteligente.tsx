@@ -40,7 +40,7 @@ const SelecaoInteligente = ({
   ];
 
   return (
-    <div className="bg-card rounded-lg p-4 card-orange">
+    <div className="bg-card rounded-lg p-4 card-orange h-full">
       <h3 className="font-heading text-lg font-bold mb-3 text-foreground">Fechamento Inteligente</h3>
 
       <div className="flex flex-wrap gap-2 mb-3">

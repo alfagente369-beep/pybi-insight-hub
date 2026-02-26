@@ -96,29 +96,45 @@ const Index = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1">
-          <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} />
+      <div className="max-w-7xl mx-auto">
+        {/* Linha superior - 3 cards com altura igual */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          <div className="lg:col-span-1 flex">
+            <div className="w-full">
+              <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} />
+            </div>
+          </div>
+          <div className="lg:col-span-1 flex">
+            <div className="w-full">
+              <PalpiteSection resultados={resultados} onPalpiteChange={handlePalpiteChange} />
+            </div>
+          </div>
+          <div className="lg:col-span-1 flex">
+            <div className="w-full">
+              <UltimosResultados
+                resultados={resultados}
+                loading={loadingResultados}
+                onSincronizar={sincronizar}
+              />
+            </div>
+          </div>
         </div>
-        <div className="lg:col-span-1">
-          <PalpiteSection resultados={resultados} onPalpiteChange={handlePalpiteChange} />
+
+        {/* Linha inferior */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="lg:col-span-1">
+            <TrupacosList jogos={jogosGerados} />
+          </div>
+          <div className="lg:col-span-1">
+            <EstrategiaJogo onGerarJogos={handleGerarJogos} jogosGerados={jogosGerados} />
+          </div>
+          <div className="lg:col-span-1">
+            <ConferenciaRapida jogos={jogosGerados} resultadoSorteado={ultimoResultado} />
+          </div>
         </div>
-        <div className="lg:col-span-1">
-          <UltimosResultados
-            resultados={resultados}
-            loading={loadingResultados}
-            onSincronizar={sincronizar}
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <TrupacosList jogos={jogosGerados} />
-        </div>
-        <div className="lg:col-span-1">
-          <EstrategiaJogo onGerarJogos={handleGerarJogos} jogosGerados={jogosGerados} />
-        </div>
-        <div className="lg:col-span-1">
-          <ConferenciaRapida jogos={jogosGerados} resultadoSorteado={ultimoResultado} />
-        </div>
+
+        {/* Espaço reservado para novas funções */}
+        <div className="min-h-[200px]" />
       </div>
     </div>
   );

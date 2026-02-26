@@ -56,7 +56,7 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
   ];
 
   return (
-    <div className="bg-card rounded-lg p-4 card-red">
+    <div className="bg-card rounded-lg p-4 card-red h-full">
       <h3 className="font-heading text-sm font-bold mb-3 text-foreground text-center uppercase tracking-wider">
         Palpite de Fechamento
       </h3>
