@@ -9,6 +9,7 @@ import {
   gerarJogosLotofacil,
   buscarUltimosResultados,
   calcularQuentesFrios,
+  downloadCSV,
   type JogoGerado,
   type ResultadoLotofacil,
   type EstatisticasNumeros,
@@ -110,9 +111,21 @@ const Index = () => {
               <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} onModeChange={handleSelecaoModeChange} onClearSelected={handleClearSelected} onClearFixed={handleClearFixed} />
             </div>
           </div>
-          <div className="lg:col-span-1 flex">
-            <div className="w-full">
+          <div className="lg:col-span-1 flex flex-col">
+            <div className="w-full flex-1">
               <PalpiteSection resultados={resultados} onPalpiteChange={handlePalpiteChange} fonte={fonte} onFonteChange={setFonte} />
+            </div>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => jogosGerados.length > 0 && downloadCSV(jogosGerados)}
+                disabled={jogosGerados.length === 0}
+                className="flex-1 bg-muted hover:bg-border text-foreground text-sm py-2 rounded font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                BAIXAR CSV
+              </button>
+              <button className="flex-1 bg-muted hover:bg-border text-foreground text-sm py-2 rounded font-medium transition-colors">
+                SALVAR MODELO
+              </button>
             </div>
           </div>
           <div className="lg:col-span-1 flex">
