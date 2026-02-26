@@ -95,18 +95,6 @@ const EstrategiaJogo = ({ onGerarJogos, jogosGerados }: EstrategiaJogoProps) => 
         </button>
       </div>
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => jogosGerados.length > 0 && downloadCSV(jogosGerados)}
-          disabled={jogosGerados.length === 0}
-          className="flex-1 bg-muted hover:bg-border text-foreground text-sm py-2 rounded font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          BAIXAR CSV
-        </button>
-        <button className="flex-1 bg-muted hover:bg-border text-foreground text-sm py-2 rounded font-medium transition-colors">
-          SALVAR MODELO
-        </button>
-      </div>
     </div>
   );
 };
