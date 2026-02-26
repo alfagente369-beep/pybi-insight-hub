@@ -51,25 +51,22 @@ const SelecaoInteligente = ({
       <h3 className="font-heading text-lg font-bold mb-3 text-foreground">Fechamento Inteligente</h3>
 
       <div className="flex flex-wrap gap-2 mb-3">
-        {modes.map((m) => {
-          const disabled = m.key === "fixos" && mode === "numeros" && selectedNumbers.length > 0;
-          return (
-            <label
-              key={m.key}
-              className={`flex items-center gap-1.5 text-sm ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
-              onClick={() => !disabled && handleModeChange(m.key)}
+        {modes.map((m) => (
+          <label
+            key={m.key}
+            className="flex items-center gap-1.5 text-sm cursor-pointer"
+            onClick={() => handleModeChange(m.key)}
+          >
+            <span
+              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                mode === m.key ? "border-primary bg-primary" : "border-muted-foreground"
+              }`}
             >
-              <span
-                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                  mode === m.key ? "border-primary bg-primary" : "border-muted-foreground"
-                }`}
-              >
-                {mode === m.key && <span className="w-2 h-2 rounded-full bg-primary-foreground" />}
-              </span>
-              <span className="text-muted-foreground">{m.label}</span>
-            </label>
-          );
-        })}
+              {mode === m.key && <span className="w-2 h-2 rounded-full bg-primary-foreground" />}
+            </span>
+            <span className="text-muted-foreground">{m.label}</span>
+          </label>
+        ))}
       </div>
 
       <p className="text-xs text-muted-foreground mb-2 italic">
