@@ -14,10 +14,12 @@ import {
   type EstatisticasNumeros,
   type FontePalpite,
 } from "@/lib/lotofacil";
+import { distribuirNumerosInteligente } from "@/lib/fechamento";
 
 const Index = () => {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [fixedNumbers, setFixedNumbers] = useState<number[]>([]);
+  const [selecaoMode, setSelecaoMode] = useState<"numeros" | "fixos">("numeros");
   const [jogosGerados, setJogosGerados] = useState<JogoGerado[]>([]);
   const [resultados, setResultados] = useState<ResultadoLotofacil[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
@@ -54,33 +56,35 @@ const Index = () => {
   }, []);
 
   const handleGerarJogos = (quantidade: number, balancear: boolean, fonte: "selecao" | "palpite" = "selecao", tamanho: number = 15) => {
-    const jogos: JogoGerado[] = [];
+    if (fonte === "selecao" && selecaoMode === "numeros" && selectedNumbers.length > 0) {
+      // Distribuição inteligente dos números selecionados
+      const jogos = distribuirNumerosInteligente(selectedNumbers, quantidade, tamanho, balancear);
+      setJogosGerados(jogos.map((j) => ({ id: j.id, numeros: j.numeros })));
+      return;
+    }
 
-    // Determinar fixos com base na fonte
+    const jogos: JogoGerado[] = [];
     let fixosParaGerar: number[] = [];
+
     if (fonte === "palpite") {
       fixosParaGerar = [...new Set([...palpiteNumbers, ...fixedNumbers])];
     } else {
-      // Fonte = seleção inteligente
-      if (selectedNumbers.length >= tamanho) {
-        const primeiroJogo = selectedNumbers.slice(0, tamanho).sort((a, b) => a - b);
-        jogos.push({ id: 1, numeros: primeiroJogo });
-      }
       fixosParaGerar = [...new Set([...fixedNumbers])];
     }
 
-    const restantes = gerarJogosLotofacil(
-      Math.max(1, quantidade - jogos.length),
-      fixosParaGerar,
-      balancear,
-      tamanho
-    );
-
+    const restantes = gerarJogosLotofacil(quantidade, fixosParaGerar, balancear, tamanho);
     restantes.forEach((j, i) => {
       jogos.push({ id: jogos.length + i + 1, numeros: j.numeros });
     });
 
     setJogosGerados(jogos);
+  };
+
+  const handleSelecaoModeChange = (mode: "numeros" | "fixos") => {
+    setSelecaoMode(mode);
+    if (mode === "numeros") {
+      setFixedNumbers([]);
+    }
   };
 
   const ultimoResultado = resultados.length > 0 ? resultados[0].numeros : [];
@@ -103,7 +107,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div className="lg:col-span-1 flex">
             <div className="w-full">
-              <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} />
+              <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} onModeChange={handleSelecaoModeChange} />
             </div>
           </div>
           <div className="lg:col-span-1 flex">

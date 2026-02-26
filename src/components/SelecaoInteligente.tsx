@@ -9,6 +9,7 @@ interface SelecaoInteligenteProps {
   fixedNumbers: number[];
   onToggleSelected: (n: number) => void;
   onToggleFixed: (n: number) => void;
+  onModeChange?: (mode: ModeType) => void;
 }
 
 const SelecaoInteligente = ({
@@ -16,8 +17,14 @@ const SelecaoInteligente = ({
   fixedNumbers,
   onToggleSelected,
   onToggleFixed,
+  onModeChange,
 }: SelecaoInteligenteProps) => {
   const [mode, setMode] = useState<ModeType>("numeros");
+
+  const handleModeChange = (newMode: ModeType) => {
+    setMode(newMode);
+    onModeChange?.(newMode);
+  };
 
   const handleNumberClick = (num: number) => {
     if (mode === "numeros") {
@@ -44,18 +51,25 @@ const SelecaoInteligente = ({
       <h3 className="font-heading text-lg font-bold mb-3 text-foreground">Fechamento Inteligente</h3>
 
       <div className="flex flex-wrap gap-2 mb-3">
-        {modes.map((m) => (
-          <label key={m.key} className="flex items-center gap-1.5 cursor-pointer text-sm" onClick={() => setMode(m.key)}>
-            <span
-              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                mode === m.key ? "border-primary bg-primary" : "border-muted-foreground"
-              }`}
+        {modes.map((m) => {
+          const disabled = m.key === "fixos" && mode === "numeros" && selectedNumbers.length > 0;
+          return (
+            <label
+              key={m.key}
+              className={`flex items-center gap-1.5 text-sm ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
+              onClick={() => !disabled && handleModeChange(m.key)}
             >
-              {mode === m.key && <span className="w-2 h-2 rounded-full bg-primary-foreground" />}
-            </span>
-            <span className="text-muted-foreground">{m.label}</span>
-          </label>
-        ))}
+              <span
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                  mode === m.key ? "border-primary bg-primary" : "border-muted-foreground"
+                }`}
+              >
+                {mode === m.key && <span className="w-2 h-2 rounded-full bg-primary-foreground" />}
+              </span>
+              <span className="text-muted-foreground">{m.label}</span>
+            </label>
+          );
+        })}
       </div>
 
       <p className="text-xs text-muted-foreground mb-2 italic">
