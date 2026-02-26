@@ -23,11 +23,12 @@ const UltimosResultados = ({ resultados, loading, onSincronizar, fonte }: Ultimo
   const qty = fonteToQty(fonte);
   const filteredResultados = useMemo(() => resultados.slice(0, qty), [resultados, qty]);
 
-  // Combine: manual results first (if any), then filtered
+  // If manual results exist, show ONLY those; otherwise use fonte-filtered
   const allResultados = useMemo(() => {
-    const manualIds = new Set(manualResultados.map((r) => r.concurso));
-    const filtered = filteredResultados.filter((r) => !manualIds.has(r.concurso));
-    return [...manualResultados, ...filtered].sort((a, b) => b.concurso - a.concurso);
+    if (manualResultados.length > 0) {
+      return [...manualResultados].sort((a, b) => b.concurso - a.concurso);
+    }
+    return filteredResultados;
   }, [filteredResultados, manualResultados]);
 
   const maxOffset = Math.max(0, allResultados.length - VISIBLE_COUNT);
