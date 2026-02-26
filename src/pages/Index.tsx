@@ -22,8 +22,6 @@ const Index = () => {
   const [loadingResultados, setLoadingResultados] = useState(false);
   const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
   const [palpiteNumbers, setPalpiteNumbers] = useState<number[]>([]);
-  const [palpiteImpar, setPalpiteImpar] = useState(0);
-  const [palpitePar, setPalpitePar] = useState(0);
 
   const sincronizar = useCallback(async () => {
     setLoadingResultados(true);
@@ -49,10 +47,8 @@ const Index = () => {
     );
   };
 
-  const handlePalpiteChange = useCallback((palpites: number[], qtdImpar: number, qtdPar: number) => {
+  const handlePalpiteChange = useCallback((palpites: number[]) => {
     setPalpiteNumbers(palpites);
-    setPalpiteImpar(qtdImpar);
-    setPalpitePar(qtdPar);
   }, []);
 
   const handleGerarJogos = (quantidade: number, balancear: boolean, fonte: "selecao" | "palpite" = "selecao", tamanho: number = 15) => {
@@ -102,7 +98,7 @@ const Index = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1">
-          <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} estatisticas={estatisticas} />
+          <SelecaoInteligente selectedNumbers={selectedNumbers} fixedNumbers={fixedNumbers} onToggleSelected={toggleSelected} onToggleFixed={toggleFixed} />
         </div>
         <div className="lg:col-span-1">
           <PalpiteSection resultados={resultados} onPalpiteChange={handlePalpiteChange} />
