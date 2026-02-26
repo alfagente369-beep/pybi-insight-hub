@@ -20,7 +20,7 @@ const UltimosResultados = ({ resultados, loading, onSincronizar }: UltimosResult
   const scrollDown = () => setOffset((prev) => Math.min(maxOffset, prev + 1));
 
   return (
-    <div className="bg-card rounded-lg p-4 card-yellow">
+    <div className="bg-card rounded-lg p-4 card-yellow h-full">
       <h3 className="font-heading text-sm font-bold mb-3 text-foreground">
         <span className="text-primary">Últimos Resultados</span>
         {resultados.length > 0 && (
