@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { calcularTop5, calcularMenosSaidos, calcularQuentesFrios, type ResultadoLotofacil, type FontePalpite, type EstatisticasNumeros, type NumeroFrio } from "@/lib/lotofacil";
+import { calcularMaisSaidos, calcularMenosSaidos, calcularQuentesFrios, type ResultadoLotofacil, type FontePalpite, type EstatisticasNumeros, type NumeroFrio, type NumeroQuente } from "@/lib/lotofacil";
 
 interface PalpiteSectionProps {
   resultados: ResultadoLotofacil[];
@@ -17,6 +17,7 @@ type OverlayType = "quentes" | "frios" | null;
 const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) => {
   const [fonte, setFonte] = useState<FontePalpite>("ultimos3");
   const [palpites, setPalpites] = useState<number[]>([]);
+  const [maisSaidos, setMaisSaidos] = useState<NumeroQuente[]>([]);
   const [menosSaidos, setMenosSaidos] = useState<NumeroFrio[]>([]);
   const [overlay, setOverlay] = useState<OverlayType>(null);
   const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
@@ -28,7 +29,9 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
 
   useEffect(() => {
     if (resultados.length === 0) return;
-    setPalpites(calcularTop5(resultados, fonte));
+    const mais = calcularMaisSaidos(resultados, fonte);
+    setMaisSaidos(mais);
+    setPalpites(mais.map(m => m.numero));
     setMenosSaidos(calcularMenosSaidos(resultados, fonte));
   }, [resultados, fonte]);
 
@@ -102,19 +105,21 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
         </p>
       )}
 
+      <p className="text-xs text-muted-foreground mb-1 font-heading uppercase tracking-wider">Mais sorteados</p>
       <div className="grid grid-cols-5 gap-2 mb-2">
-        {palpites.map((p, i) => {
-          const extraClass = getBallClass(p);
+        {maisSaidos.map((item, i) => {
+          const extraClass = getBallClass(item.numero);
           return (
             <div
               key={i}
-              className={extraClass || "w-full h-12 bg-primary/20 border border-primary/40 rounded flex items-center justify-center text-primary font-bold text-lg"}
+              className={extraClass || "w-full h-12 bg-orange/20 border border-orange/60 rounded flex flex-col items-center justify-center"}
             >
-              {String(p).padStart(2, "0")}
+              <span className="text-orange font-bold text-lg leading-none">{String(item.numero).padStart(2, "0")}</span>
+              <span className="text-[10px] text-orange/70 leading-none mt-0.5">{item.frequencia}x</span>
             </div>
           );
         })}
-        {palpites.length === 0 && Array.from({ length: 5 }).map((_, i) => (
+        {maisSaidos.length === 0 && Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="w-full h-12 bg-muted border border-border rounded flex items-center justify-center text-muted-foreground">
             --
           </div>

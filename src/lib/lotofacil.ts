@@ -135,7 +135,16 @@ export interface EstatisticasNumeros {
 
 export type FontePalpite = "ultimos3" | "ultimos5" | "ultimos10";
 
+export interface NumeroQuente {
+  numero: number;
+  frequencia: number;
+}
+
 export function calcularTop5(resultados: ResultadoLotofacil[], fonte: FontePalpite): number[] {
+  return calcularMaisSaidos(resultados, fonte).map(item => item.numero);
+}
+
+export function calcularMaisSaidos(resultados: ResultadoLotofacil[], fonte: FontePalpite): NumeroQuente[] {
   const qty = fonte === "ultimos3" ? 3 : fonte === "ultimos5" ? 5 : 10;
   const subset = resultados.slice(0, qty);
 
@@ -150,8 +159,7 @@ export function calcularTop5(resultados: ResultadoLotofacil[], fonte: FontePalpi
   return Array.from(freq.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
-    .map(([num]) => num)
-    .sort((a, b) => a - b);
+    .map(([num, freq]) => ({ numero: num, frequencia: freq }));
 }
 
 export interface NumeroFrio {
