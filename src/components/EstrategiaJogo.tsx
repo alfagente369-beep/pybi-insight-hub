@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { downloadCSV, type JogoGerado } from "@/lib/lotofacil";
-
-type FonteGeracao = "selecao" | "palpite";
+import { type JogoGerado } from "@/lib/lotofacil";
 
 interface EstrategiaJogoProps {
-  onGerarJogos: (quantidade: number, balancear: boolean, fonte: FonteGeracao, tamanho: number) => void;
+  onGerarJogos: (quantidade: number, balancear: boolean, fonte: "selecao" | "palpite", tamanho: number) => void;
   jogosGerados: JogoGerado[];
 }
 
@@ -13,32 +11,11 @@ const TAMANHOS = [15, 16, 17] as const;
 const EstrategiaJogo = ({ onGerarJogos, jogosGerados }: EstrategiaJogoProps) => {
   const [quantidade, setQuantidade] = useState(5);
   const [balancear, setBalancear] = useState(true);
-  const [fonte, setFonte] = useState<FonteGeracao>("selecao");
   const [tamanho, setTamanho] = useState<number>(15);
 
   return (
     <div className="bg-card rounded-lg p-4 card-cyan">
       <h3 className="font-heading text-lg font-bold mb-3 text-foreground">Estratégia de Jogo</h3>
-
-      {/* Fonte de geração */}
-      <div className="mb-3">
-        <label className="text-xs text-muted-foreground uppercase tracking-wider font-heading block mb-1">
-          Fonte da Geração
-        </label>
-        <div className="flex gap-3">
-          {([
-            { key: "selecao" as FonteGeracao, label: "Fechamento Inteligente" },
-            { key: "palpite" as FonteGeracao, label: "Palpite de Fechamento" },
-          ]).map((f) => (
-            <label key={f.key} className="flex items-center gap-1.5 cursor-pointer text-sm" onClick={() => setFonte(f.key)}>
-              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${fonte === f.key ? "border-secondary bg-secondary" : "border-muted-foreground"}`}>
-                {fonte === f.key && <span className="w-2 h-2 rounded-full bg-secondary-foreground" />}
-              </span>
-              <span className="text-muted-foreground">{f.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
 
       {/* Quantidade de números */}
       <div className="mb-3">
@@ -90,7 +67,7 @@ const EstrategiaJogo = ({ onGerarJogos, jogosGerados }: EstrategiaJogoProps) => 
       </div>
 
       <div className="flex justify-center mb-4">
-        <button className="glow-button" onClick={() => onGerarJogos(quantidade, balancear, fonte, tamanho)}>
+        <button className="glow-button" onClick={() => onGerarJogos(quantidade, balancear, "selecao", tamanho)}>
           GERAR JOGOS
         </button>
       </div>
