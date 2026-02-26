@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { type ResultadoLotofacil, type FontePalpite } from "@/lib/lotofacil";
 
@@ -34,8 +34,12 @@ const UltimosResultados = ({ resultados, loading, onSincronizar, fonte }: Ultimo
   const maxOffset = Math.max(0, allResultados.length - VISIBLE_COUNT);
   const visibleResultados = allResultados.slice(offset, offset + VISIBLE_COUNT);
 
-  // Reset offset when fonte changes
-  useState(() => setOffset(0));
+  // Reset offset and clear manual results when fonte changes
+  useEffect(() => {
+    setOffset(0);
+    setManualResultados([]);
+    setManualInput("");
+  }, [fonte]);
 
   const scrollUp = () => setOffset((prev) => Math.max(0, prev - 1));
   const scrollDown = () => setOffset((prev) => Math.min(maxOffset, prev + 1));
