@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { calcularTop5, calcularQuentesFrios, type ResultadoLotofacil, type FontePalpite, type EstatisticasNumeros } from "@/lib/lotofacil";
+import { calcularTop5, calcularMenosSaidos, calcularQuentesFrios, type ResultadoLotofacil, type FontePalpite, type EstatisticasNumeros, type NumeroFrio } from "@/lib/lotofacil";
 
 interface PalpiteSectionProps {
   resultados: ResultadoLotofacil[];
@@ -17,6 +17,7 @@ type OverlayType = "quentes" | "frios" | null;
 const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) => {
   const [fonte, setFonte] = useState<FontePalpite>("ultimos3");
   const [palpites, setPalpites] = useState<number[]>([]);
+  const [menosSaidos, setMenosSaidos] = useState<NumeroFrio[]>([]);
   const [overlay, setOverlay] = useState<OverlayType>(null);
   const [estatisticas, setEstatisticas] = useState<EstatisticasNumeros>({ quentes: [], frios: [], nunca: [] });
 
@@ -27,8 +28,8 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
 
   useEffect(() => {
     if (resultados.length === 0) return;
-    const top5 = calcularTop5(resultados, fonte);
-    setPalpites(top5);
+    setPalpites(calcularTop5(resultados, fonte));
+    setMenosSaidos(calcularMenosSaidos(resultados, fonte));
   }, [resultados, fonte]);
 
   useEffect(() => {
@@ -101,7 +102,7 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
         </p>
       )}
 
-      <div className="grid grid-cols-5 gap-2 mb-4">
+      <div className="grid grid-cols-5 gap-2 mb-2">
         {palpites.map((p, i) => {
           const extraClass = getBallClass(p);
           return (
@@ -114,6 +115,24 @@ const PalpiteSection = ({ resultados, onPalpiteChange }: PalpiteSectionProps) =>
           );
         })}
         {palpites.length === 0 && Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="w-full h-12 bg-muted border border-border rounded flex items-center justify-center text-muted-foreground">
+            --
+          </div>
+        ))}
+      </div>
+
+      <p className="text-xs text-muted-foreground mb-1 font-heading uppercase tracking-wider">Menos sorteados</p>
+      <div className="grid grid-cols-5 gap-2 mb-2">
+        {menosSaidos.map((item, i) => (
+          <div
+            key={i}
+            className="w-full h-12 bg-cyan/20 border border-cyan/60 rounded flex flex-col items-center justify-center"
+          >
+            <span className="text-cyan font-bold text-lg leading-none">{String(item.numero).padStart(2, "0")}</span>
+            <span className="text-[10px] text-cyan/70 leading-none mt-0.5">{item.frequencia}x</span>
+          </div>
+        ))}
+        {menosSaidos.length === 0 && Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="w-full h-12 bg-muted border border-border rounded flex items-center justify-center text-muted-foreground">
             --
           </div>

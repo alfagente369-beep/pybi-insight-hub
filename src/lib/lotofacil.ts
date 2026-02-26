@@ -154,6 +154,29 @@ export function calcularTop5(resultados: ResultadoLotofacil[], fonte: FontePalpi
     .sort((a, b) => a - b);
 }
 
+export interface NumeroFrio {
+  numero: number;
+  frequencia: number;
+}
+
+export function calcularMenosSaidos(resultados: ResultadoLotofacil[], fonte: FontePalpite): NumeroFrio[] {
+  const qty = fonte === "ultimos3" ? 3 : fonte === "ultimos5" ? 5 : 10;
+  const subset = resultados.slice(0, qty);
+
+  const freq = new Map<number, number>();
+  for (let i = 1; i <= 25; i++) freq.set(i, 0);
+  for (const r of subset) {
+    for (const n of r.numeros) {
+      freq.set(n, (freq.get(n) || 0) + 1);
+    }
+  }
+
+  return Array.from(freq.entries())
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, 5)
+    .map(([num, freq]) => ({ numero: num, frequencia: freq }));
+}
+
 export function calcularQuentesFrios(resultados: ResultadoLotofacil[]): EstatisticasNumeros {
   const freq = new Map<number, number>();
   for (let i = 1; i <= 25; i++) freq.set(i, 0);
