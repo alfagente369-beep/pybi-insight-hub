@@ -11,19 +11,19 @@ const TrupacosList = ({ jogos, onSalvarModelo }: TrupacosListProps) => {
     <div className="bg-card rounded-lg p-4 card-gold border-muted">
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-heading text-lg font-bold text-foreground">Gerador</h3>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           <button
             onClick={() => jogos.length > 0 && downloadCSV(jogos)}
             disabled={jogos.length === 0}
-            className="bg-muted hover:bg-border text-foreground text-[10px] px-2 py-1 rounded font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="bg-muted hover:bg-border text-foreground text-xs px-4 py-1.5 rounded font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            CSV
+            BAIXAR CSV
           </button>
           <button
             onClick={onSalvarModelo}
-            className="bg-muted hover:bg-border text-foreground text-[10px] px-2 py-1 rounded font-medium transition-colors"
+            className="bg-muted hover:bg-border text-foreground text-xs px-4 py-1.5 rounded font-medium transition-colors"
           >
-            SALVAR
+            SALVAR MODELO
           </button>
         </div>
       </div>
