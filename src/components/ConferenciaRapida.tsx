@@ -41,10 +41,13 @@ const ConferenciaRapida = ({ jogos, resultadoSorteado }: ConferenciaRapidaProps)
           </div>
 
           {getPremio(melhor.acertos) && (
-            <p className="text-center text-sm text-primary font-bold mb-3">
+            <p className="text-center text-sm text-primary font-bold mb-1">
               {getPremio(melhor.acertos)}
             </p>
           )}
+          <p className="text-center text-xs text-muted-foreground mb-3">
+            {conferencia.filter(c => c.acertos > 10).length} de {conferencia.length} jogos com mais de 10 acertos
+          </p>
 
           <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
             {conferencia.map((c) => (
