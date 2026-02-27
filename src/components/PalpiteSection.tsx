@@ -54,7 +54,7 @@ const PalpiteSection = ({ resultados, onPalpiteChange, fonte, onFonteChange }: P
         </select>
       </div>
 
-      <p className="text-xs text-muted-foreground mb-1 font-heading uppercase tracking-wider">Mais sorteados</p>
+      <p className="text-xs text-muted-foreground mb-1 font-heading uppercase tracking-wider">Números Quentes</p>
       <div className="grid grid-cols-5 gap-2 mb-2">
         {maisSaidos.map((item, i) => (
           <div
@@ -72,7 +72,7 @@ const PalpiteSection = ({ resultados, onPalpiteChange, fonte, onFonteChange }: P
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground mb-1 font-heading uppercase tracking-wider">Menos sorteados</p>
+      <p className="text-xs text-muted-foreground mb-1 font-heading uppercase tracking-wider">Números Frios</p>
       <div className="grid grid-cols-5 gap-2 mb-2">
         {menosSaidos.map((item, i) => (
           <div
