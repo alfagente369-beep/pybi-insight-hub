@@ -1,14 +1,32 @@
 import { type JogoGerado } from "@/lib/lotofacil";
-import { calcularEstatisticas } from "@/lib/lotofacil";
+import { calcularEstatisticas, downloadCSV } from "@/lib/lotofacil";
 
 interface TrupacosListProps {
   jogos: JogoGerado[];
+  onSalvarModelo?: () => void;
 }
 
-const TrupacosList = ({ jogos }: TrupacosListProps) => {
+const TrupacosList = ({ jogos, onSalvarModelo }: TrupacosListProps) => {
   return (
     <div className="bg-card rounded-lg p-4 card-gold border-muted">
-      <h3 className="font-heading text-lg font-bold mb-2 text-foreground">Gerador</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-heading text-lg font-bold text-foreground">Gerador</h3>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => jogos.length > 0 && downloadCSV(jogos)}
+            disabled={jogos.length === 0}
+            className="bg-muted hover:bg-border text-foreground text-[10px] px-2 py-1 rounded font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            CSV
+          </button>
+          <button
+            onClick={onSalvarModelo}
+            className="bg-muted hover:bg-border text-foreground text-[10px] px-2 py-1 rounded font-medium transition-colors"
+          >
+            SALVAR
+          </button>
+        </div>
+      </div>
 
       {jogos.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">
