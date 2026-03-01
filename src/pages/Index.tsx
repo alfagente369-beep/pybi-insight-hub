@@ -18,6 +18,8 @@ import {
 import { distribuirNumerosInteligente } from "@/lib/fechamento";
 import { salvarModelo, listarModelos, excluirModelo, type ModeloEstrategia } from "@/lib/modelos";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [fixedNumbers, setFixedNumbers] = useState<number[]>([]);
   const [selecaoMode, setSelecaoMode] = useState<"numeros" | "fixos">("numeros");
@@ -139,7 +142,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <div className="text-center mb-6">
+      <div className="text-center mb-6 relative">
+        <button
+          onClick={() => navigate("/perfil")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 bg-card border border-border rounded-lg p-2.5 text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+          title="Meu Perfil"
+        >
+          <User className="w-5 h-5" />
+        </button>
         <div className="inline-block bg-card border border-border rounded-xl px-8 py-3">
           <h1 className="font-heading text-2xl md:text-3xl font-black text-primary tracking-wider">
             FECHAMENTO LOTOFACIL
