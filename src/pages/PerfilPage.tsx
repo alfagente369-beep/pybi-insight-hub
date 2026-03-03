@@ -112,15 +112,15 @@ const PerfilPage = () => {
           </Card>
           <Card className="card-purple">
             <CardContent className="p-4 text-center">
-              <TrendingUp className="w-6 h-6 mx-auto mb-1" style={{ color: "hsl(270, 60%, 55%)" }} />
-              <p className="text-2xl font-heading font-black" style={{ color: "hsl(270, 60%, 55%)" }}>11.2</p>
+              <TrendingUp className="w-6 h-6 mx-auto mb-1 text-accent" />
+              <p className="text-2xl font-heading font-black text-accent">11.2</p>
               <p className="text-xs text-muted-foreground">Média Acertos</p>
             </CardContent>
           </Card>
           <Card className="card-orange">
             <CardContent className="p-4 text-center">
-              <Star className="w-6 h-6 mx-auto mb-1" style={{ color: "hsl(25, 90%, 55%)" }} />
-              <p className="text-lg font-heading font-black" style={{ color: "hsl(25, 90%, 55%)" }}>R$ 13.7K</p>
+              <Star className="w-6 h-6 mx-auto mb-1 text-orange" />
+              <p className="text-lg font-heading font-black text-orange">R$ 13.7K</p>
               <p className="text-xs text-muted-foreground">Prêmios Total</p>
             </CardContent>
           </Card>
