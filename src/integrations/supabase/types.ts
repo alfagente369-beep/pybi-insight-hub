@@ -14,7 +14,140 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      jogos_gerados: {
+        Row: {
+          concurso: string | null
+          created_at: string
+          id: string
+          numeros: number[]
+          tamanho_jogo: number
+          total_jogos: number
+          user_id: string
+        }
+        Insert: {
+          concurso?: string | null
+          created_at?: string
+          id?: string
+          numeros?: number[]
+          tamanho_jogo?: number
+          total_jogos?: number
+          user_id: string
+        }
+        Update: {
+          concurso?: string | null
+          created_at?: string
+          id?: string
+          numeros?: number[]
+          tamanho_jogo?: number
+          total_jogos?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      modelos_estrategia: {
+        Row: {
+          created_at: string
+          fixed_numbers: number[]
+          fonte: string
+          id: string
+          nome: string
+          selecao_mode: string
+          selected_numbers: number[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fixed_numbers?: number[]
+          fonte?: string
+          id?: string
+          nome: string
+          selecao_mode?: string
+          selected_numbers?: number[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fixed_numbers?: number[]
+          fonte?: string
+          id?: string
+          nome?: string
+          selecao_mode?: string
+          selected_numbers?: number[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      resultados_conferencia: {
+        Row: {
+          acertos_por_jogo: Json
+          concurso: string
+          created_at: string
+          id: string
+          jogo_id: string | null
+          melhor_acerto: number
+          premio_estimado: string | null
+          resultado_sorteado: number[]
+          user_id: string
+        }
+        Insert: {
+          acertos_por_jogo?: Json
+          concurso: string
+          created_at?: string
+          id?: string
+          jogo_id?: string | null
+          melhor_acerto?: number
+          premio_estimado?: string | null
+          resultado_sorteado?: number[]
+          user_id: string
+        }
+        Update: {
+          acertos_por_jogo?: Json
+          concurso?: string
+          created_at?: string
+          id?: string
+          jogo_id?: string | null
+          melhor_acerto?: number
+          premio_estimado?: string | null
+          resultado_sorteado?: number[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resultados_conferencia_jogo_id_fkey"
+            columns: ["jogo_id"]
+            isOneToOne: false
+            referencedRelation: "jogos_gerados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

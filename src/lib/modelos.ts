@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface ModeloEstrategia {
   id: string;
   nome: string;
@@ -8,30 +10,68 @@ export interface ModeloEstrategia {
   fonte: string;
 }
 
-const STORAGE_KEY = "lotofacil_modelos";
+export async function listarModelos(): Promise<ModeloEstrategia[]> {
+  const { data, error } = await supabase
+    .from("modelos_estrategia")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-export function listarModelos(): ModeloEstrategia[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
+  if (error) {
+    console.error("Erro ao listar modelos:", error);
     return [];
   }
+
+  return (data ?? []).map((m) => ({
+    id: m.id,
+    nome: m.nome,
+    criadoEm: new Date(m.created_at).toLocaleString("pt-BR"),
+    selectedNumbers: m.selected_numbers,
+    fixedNumbers: m.fixed_numbers,
+    selecaoMode: m.selecao_mode as "numeros" | "fixos",
+    fonte: m.fonte,
+  }));
 }
 
-export function salvarModelo(modelo: Omit<ModeloEstrategia, "id" | "criadoEm">): ModeloEstrategia {
-  const modelos = listarModelos();
-  const novo: ModeloEstrategia = {
-    ...modelo,
-    id: Date.now().toString(36),
-    criadoEm: new Date().toLocaleString("pt-BR"),
+export async function salvarModelo(
+  modelo: Omit<ModeloEstrategia, "id" | "criadoEm">
+): Promise<ModeloEstrategia | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("modelos_estrategia")
+    .insert({
+      user_id: user.id,
+      nome: modelo.nome,
+      selected_numbers: modelo.selectedNumbers,
+      fixed_numbers: modelo.fixedNumbers,
+      selecao_mode: modelo.selecaoMode,
+      fonte: modelo.fonte,
+    })
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error("Erro ao salvar modelo:", error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    nome: data.nome,
+    criadoEm: new Date(data.created_at).toLocaleString("pt-BR"),
+    selectedNumbers: data.selected_numbers,
+    fixedNumbers: data.fixed_numbers,
+    selecaoMode: data.selecao_mode as "numeros" | "fixos",
+    fonte: data.fonte,
   };
-  modelos.unshift(novo);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(modelos));
-  return novo;
 }
 
-export function excluirModelo(id: string): void {
-  const modelos = listarModelos().filter((m) => m.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(modelos));
+export async function excluirModelo(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("modelos_estrategia")
+    .delete()
+    .eq("id", id);
+
+  if (error) console.error("Erro ao excluir modelo:", error);
 }
