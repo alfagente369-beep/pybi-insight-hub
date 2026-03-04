@@ -20,6 +20,7 @@ import { salvarModelo, listarModelos, excluirModelo, type ModeloEstrategia } fro
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -76,29 +77,40 @@ const Index = () => {
     setPalpiteNumbers(palpites);
   }, []);
 
-  const handleGerarJogos = (quantidade: number, balancear: boolean, fonte: "selecao" | "palpite" = "selecao", tamanho: number = 15) => {
-    if (fonte === "selecao" && selecaoMode === "numeros" && selectedNumbers.length > 0) {
-      // Distribuição inteligente dos números selecionados
-      const jogos = distribuirNumerosInteligente(selectedNumbers, quantidade, tamanho, balancear);
-      setJogosGerados(jogos.map((j) => ({ id: j.id, numeros: j.numeros })));
-      return;
-    }
+  const salvarJogosNoBanco = async (jogos: JogoGerado[], tamanho: number) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-    const jogos: JogoGerado[] = [];
-    let fixosParaGerar: number[] = [];
-
-    if (fonte === "palpite") {
-      fixosParaGerar = [...new Set([...palpiteNumbers, ...fixedNumbers])];
-    } else {
-      fixosParaGerar = [...new Set([...fixedNumbers])];
-    }
-
-    const restantes = gerarJogosLotofacil(quantidade, fixosParaGerar, balancear, tamanho);
-    restantes.forEach((j, i) => {
-      jogos.push({ id: jogos.length + i + 1, numeros: j.numeros });
+    const numerosArray = jogos.map((j) => j.numeros);
+    await supabase.from("jogos_gerados").insert({
+      user_id: user.id,
+      tamanho_jogo: tamanho,
+      numeros: numerosArray as any,
+      total_jogos: jogos.length,
     });
+  };
 
-    setJogosGerados(jogos);
+  const handleGerarJogos = async (quantidade: number, balancear: boolean, fonte: "selecao" | "palpite" = "selecao", tamanho: number = 15) => {
+    let jogosFinais: JogoGerado[] = [];
+
+    if (fonte === "selecao" && selecaoMode === "numeros" && selectedNumbers.length > 0) {
+      const jogos = distribuirNumerosInteligente(selectedNumbers, quantidade, tamanho, balancear);
+      jogosFinais = jogos.map((j) => ({ id: j.id, numeros: j.numeros }));
+    } else {
+      let fixosParaGerar: number[] = [];
+
+      if (fonte === "palpite") {
+        fixosParaGerar = [...new Set([...palpiteNumbers, ...fixedNumbers])];
+      } else {
+        fixosParaGerar = [...new Set([...fixedNumbers])];
+      }
+
+      const restantes = gerarJogosLotofacil(quantidade, fixosParaGerar, balancear, tamanho);
+      jogosFinais = restantes.map((j, i) => ({ id: i + 1, numeros: j.numeros }));
+    }
+
+    setJogosGerados(jogosFinais);
+    await salvarJogosNoBanco(jogosFinais, tamanho);
   };
 
   const handleSelecaoModeChange = (mode: "numeros" | "fixos") => {
