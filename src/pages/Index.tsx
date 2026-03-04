@@ -45,7 +45,7 @@ const Index = () => {
   const [showModelos, setShowModelos] = useState(false);
 
   useEffect(() => {
-    setModelos(listarModelos());
+    listarModelos().then(setModelos);
   }, []);
 
   const sincronizar = useCallback(async () => {
@@ -108,16 +108,16 @@ const Index = () => {
   const handleClearSelected = () => setSelectedNumbers([]);
   const handleClearFixed = () => setFixedNumbers([]);
 
-  const handleSalvarModelo = () => {
+  const handleSalvarModelo = async () => {
     if (!modeloNome.trim()) return;
-    salvarModelo({
+    await salvarModelo({
       nome: modeloNome.trim(),
       selectedNumbers,
       fixedNumbers,
       selecaoMode,
       fonte,
     });
-    setModelos(listarModelos());
+    listarModelos().then(setModelos);
     setModeloNome("");
     setDialogOpen(false);
     toast({ title: "Modelo salvo!", description: `"${modeloNome.trim()}" foi salvo com sucesso.` });
@@ -132,9 +132,9 @@ const Index = () => {
     toast({ title: "Modelo carregado!", description: `"${modelo.nome}" foi aplicado.` });
   };
 
-  const handleExcluirModelo = (id: string) => {
-    excluirModelo(id);
-    setModelos(listarModelos());
+  const handleExcluirModelo = async (id: string) => {
+    await excluirModelo(id);
+    listarModelos().then(setModelos);
     toast({ title: "Modelo excluído" });
   };
 
