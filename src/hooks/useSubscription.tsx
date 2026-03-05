@@ -21,6 +21,9 @@ export function useSubscription() {
       return;
     }
 
+    setLoading(true);
+    setSubscription(null);
+
     const fetchSubscription = async () => {
       const { data, error } = await supabase
         .from("subscriptions")
@@ -28,9 +31,14 @@ export function useSubscription() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!error && data) {
-        setSubscription(data);
+      if (error) {
+        console.error("Erro ao carregar assinatura:", error.message);
+        setSubscription(null);
+        setLoading(false);
+        return;
       }
+
+      setSubscription(data ?? null);
       setLoading(false);
     };
 
