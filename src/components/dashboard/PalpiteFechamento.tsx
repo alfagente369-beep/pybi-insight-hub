@@ -28,30 +28,21 @@ export function PalpiteFechamento({ fonte, onFonteChange, hotNumbers, coldNumber
       </div>
 
       <div className="mb-3">
-        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1.5">Mais Sorteados</label>
+        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1.5">Números Quentes</label>
         <div className="flex flex-wrap gap-1.5">
-          {hotNumbers.slice(0, 6).map((h) => (
+          {hotNumbers.slice(0, 5).map((h) => (
             <NumberSphere key={h.number} number={h.number} hot subtitle={`${h.count}x`} />
           ))}
         </div>
       </div>
 
       <div>
-        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1.5">Menos Sorteados</label>
+        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1.5">Números Frios</label>
         <div className="flex flex-wrap gap-1.5">
-          {coldNumbers.slice(0, 4).map((c) => (
+          {coldNumbers.slice(0, 5).map((c) => (
             <NumberSphere key={c.number} number={c.number} cold subtitle={`${c.count}x`} />
           ))}
         </div>
-      </div>
-
-      <div className="flex gap-2 mt-auto pt-3">
-        <button className="flex-1 bg-secondary hover:bg-muted text-foreground font-heading text-[10px] font-bold uppercase tracking-wider py-2 rounded-md transition-colors">
-          Baixar CSV
-        </button>
-        <button className="flex-1 bg-secondary hover:bg-muted text-foreground font-heading text-[10px] font-bold uppercase tracking-wider py-2 rounded-md transition-colors">
-          Salvar Modelo
-        </button>
       </div>
     </div>
   );

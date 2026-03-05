@@ -1,6 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useLotofacilResults, calcularEstatisticas } from "@/hooks/useLotofacilResults";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { FechamentoInteligente } from "@/components/dashboard/FechamentoInteligente";
 import { PalpiteFechamento } from "@/components/dashboard/PalpiteFechamento";
@@ -8,22 +11,6 @@ import { UltimosResultados } from "@/components/dashboard/UltimosResultados";
 import { EstrategiaJogo } from "@/components/dashboard/EstrategiaJogo";
 import { GeradorPanel } from "@/components/dashboard/GeradorPanel";
 import { ConferenciaRapida } from "@/components/dashboard/ConferenciaRapida";
-
-// Mock data for demonstration
-const mockResultados = [
-  { concurso: "3621", data: "25/02/2026", numeros: [1, 2, 4, 6, 7, 9, 10, 11, 13, 15, 18, 22, 23, 24, 25] },
-  { concurso: "3620", data: "24/02/2026", numeros: [1, 2, 4, 7, 9, 11, 12, 15, 16, 18, 19, 20, 21, 24, 25] },
-  { concurso: "3619", data: "23/02/2026", numeros: [2, 3, 5, 6, 8, 10, 12, 14, 16, 17, 19, 20, 22, 23, 25] },
-];
-
-const mockHotNumbers = [
-  { number: 1, count: 3 }, { number: 2, count: 3 }, { number: 7, count: 3 },
-  { number: 11, count: 3 }, { number: 18, count: 3 }, { number: 24, count: 2 },
-];
-
-const mockColdNumbers = [
-  { number: 3, count: 0 }, { number: 5, count: 0 }, { number: 17, count: 0 }, { number: 6, count: 1 },
-];
 
 interface Jogo {
   id: number;
@@ -34,7 +21,7 @@ interface Jogo {
 }
 
 export default function DashboardPage() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   // Fechamento Inteligente state
@@ -60,6 +47,21 @@ export default function DashboardPage() {
     acertosPorJogo: { jogoId: number; acertos: number }[];
   }>({ melhorJogo: null, melhorAcerto: 0, acertosPorJogo: [] });
 
+  // Real Lotofácil data
+  const { resultados, loading: loadingResults, refetch: refetchResults } = useLotofacilResults(10);
+
+  // Calculate hot/cold numbers based on fonte
+  const { hotNumbers, coldNumbers } = useMemo(
+    () => calcularEstatisticas(resultados, parseInt(fonte)),
+    [resultados, fonte]
+  );
+
+  // Filter results for display based on fonte
+  const resultadosFiltrados = useMemo(
+    () => resultados.slice(0, parseInt(fonte)),
+    [resultados, fonte]
+  );
+
   const handleToggleNumber = useCallback(
     (n: number) => {
       if (mode === "numeros") {
@@ -76,18 +78,28 @@ export default function DashboardPage() {
     else setFixedNumbers([]);
   }, [mode]);
 
-  const handleGerar = useCallback(() => {
-    const pool = selectedNumbers.length > 0 ? selectedNumbers : Array.from({ length: 25 }, (_, i) => i + 1);
+  const handleGerar = useCallback(async () => {
+    const pool = selectedNumbers.length >= 15 ? selectedNumbers : Array.from({ length: 25 }, (_, i) => i + 1);
     const generated: Jogo[] = [];
 
-    for (let i = 0; i < quantidade; i++) {
+    // If user selected exactly enough numbers, first game is their selection
+    if (selectedNumbers.length >= tamanho) {
+      const first = [...selectedNumbers].sort((a, b) => a - b).slice(0, tamanho);
+      const pares = first.filter((n) => n % 2 === 0).length;
+      generated.push({ id: 1, numeros: first, pares, impares: first.length - pares, soma: first.reduce((a, b) => a + b, 0) });
+    }
+
+    // Generate remaining games with balanced distribution
+    while (generated.length < quantidade) {
       const nums = [...fixedNumbers];
       const available = pool.filter((n) => !nums.includes(n));
       const shuffled = [...available].sort(() => Math.random() - 0.5);
+
       while (nums.length < tamanho && shuffled.length > 0) {
         nums.push(shuffled.pop()!);
       }
-      // Fill remaining from full pool if needed
+
+      // Fill from full pool if needed
       if (nums.length < tamanho) {
         const remaining = Array.from({ length: 25 }, (_, i) => i + 1).filter((n) => !nums.includes(n));
         const rShuffled = remaining.sort(() => Math.random() - 0.5);
@@ -95,24 +107,94 @@ export default function DashboardPage() {
           nums.push(rShuffled.pop()!);
         }
       }
+
       nums.sort((a, b) => a - b);
       const pares = nums.filter((n) => n % 2 === 0).length;
-      generated.push({ id: i + 1, numeros: nums, pares, impares: nums.length - pares, soma: nums.reduce((a, b) => a + b, 0) });
+      const impares = nums.length - pares;
+
+      // Apply balance filter
+      if (balancear) {
+        const ratio = pares / nums.length;
+        if (ratio < 0.3 || ratio > 0.7) continue; // Skip unbalanced games
+      }
+
+      generated.push({
+        id: generated.length + 1,
+        numeros: nums,
+        pares,
+        impares,
+        soma: nums.reduce((a, b) => a + b, 0),
+      });
     }
 
     setJogos(generated);
 
     // Auto-conferência with latest result
-    if (mockResultados.length > 0) {
-      const ultimoSorteio = mockResultados[0].numeros;
+    if (resultados.length > 0) {
+      const ultimoSorteio = resultados[0].numeros;
       const acertos = generated.map((j) => ({
         jogoId: j.id,
         acertos: j.numeros.filter((n) => ultimoSorteio.includes(n)).length,
       }));
       const melhor = acertos.reduce((best, curr) => (curr.acertos > best.acertos ? curr : best), acertos[0]);
-      setConferencia({ melhorJogo: melhor.jogoId, melhorAcerto: melhor.acertos, acertosPorJogo: acertos });
+      setConferencia({ melhorJogo: melhor?.jogoId ?? null, melhorAcerto: melhor?.acertos ?? 0, acertosPorJogo: acertos });
     }
-  }, [selectedNumbers, fixedNumbers, quantidade, tamanho]);
+
+    // Save to database
+    if (user) {
+      try {
+        const allNums = generated.flatMap((j) => j.numeros);
+        await supabase.from("jogos_gerados").insert({
+          user_id: user.id,
+          numeros: allNums,
+          tamanho_jogo: tamanho,
+          total_jogos: generated.length,
+          concurso: resultados[0]?.concurso || null,
+        });
+      } catch (err) {
+        console.error("Erro ao salvar jogos:", err);
+      }
+    }
+
+    toast.success(`${generated.length} jogos gerados com sucesso!`);
+  }, [selectedNumbers, fixedNumbers, quantidade, tamanho, balancear, resultados, user]);
+
+  const handleDownloadCSV = useCallback(() => {
+    if (jogos.length === 0) return;
+    const header = "Jogo," + Array.from({ length: tamanho }, (_, i) => `N${i + 1}`).join(",") + ",Pares,Ímpares,Soma\n";
+    const rows = jogos.map((j) =>
+      `${j.id},${j.numeros.map((n) => String(n).padStart(2, "0")).join(",")},${j.pares},${j.impares},${j.soma}`
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lotofacil_jogos_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV baixado com sucesso!");
+  }, [jogos, tamanho]);
+
+  const handleSalvarModelo = useCallback(async () => {
+    if (!user) return;
+    const nome = prompt("Nome do modelo:");
+    if (!nome) return;
+
+    try {
+      await supabase.from("modelos_estrategia").insert({
+        user_id: user.id,
+        nome,
+        selected_numbers: selectedNumbers,
+        fixed_numbers: fixedNumbers,
+        selecao_mode: mode,
+        fonte,
+      });
+      toast.success(`Modelo "${nome}" salvo com sucesso!`);
+    } catch (err) {
+      toast.error("Erro ao salvar modelo.");
+      console.error(err);
+    }
+  }, [user, selectedNumbers, fixedNumbers, mode, fonte]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -137,10 +219,10 @@ export default function DashboardPage() {
           <PalpiteFechamento
             fonte={fonte}
             onFonteChange={setFonte}
-            hotNumbers={mockHotNumbers}
-            coldNumbers={mockColdNumbers}
+            hotNumbers={hotNumbers}
+            coldNumbers={coldNumbers}
           />
-          <UltimosResultados resultados={mockResultados} fonte={fonte} />
+          <UltimosResultados resultados={resultadosFiltrados} fonte={fonte} />
         </div>
 
         {/* Row 2: 3 panels */}
@@ -154,7 +236,11 @@ export default function DashboardPage() {
             onBalancearChange={setBalancear}
             onGerar={handleGerar}
           />
-          <GeradorPanel jogos={jogos} />
+          <GeradorPanel
+            jogos={jogos}
+            onDownloadCSV={handleDownloadCSV}
+            onSalvarModelo={handleSalvarModelo}
+          />
           <ConferenciaRapida
             melhorJogo={conferencia.melhorJogo}
             melhorAcerto={conferencia.melhorAcerto}

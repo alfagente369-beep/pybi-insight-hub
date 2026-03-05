@@ -17,11 +17,13 @@ export function ConferenciaRapida({ melhorJogo, melhorAcerto, acertosPorJogo }: 
       <h3 className="font-heading text-sm font-bold text-foreground mb-3">Conferência Rápida</h3>
 
       {melhorJogo === null ? (
-        <p className="text-muted-foreground text-xs text-center py-8">Gere jogos e confira os resultados.</p>
+        <p className="text-muted-foreground text-xs text-center py-8">
+          Gere jogos e aguarde o resultado para conferir seus acertos automaticamente.
+        </p>
       ) : (
         <>
           <p className="text-xs text-muted-foreground mb-2">
-            Melhor Jogo (<span className="text-gold">#{melhorJogo}</span>)
+            Melhor Jogo (<span className="text-gold">#{String(melhorJogo).padStart(2, "0")}</span>)
           </p>
 
           <div className="bg-secondary rounded-lg py-4 text-center mb-2">
