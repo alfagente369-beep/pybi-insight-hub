@@ -1,0 +1,68 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 144 100% 5%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 142 71% 45%;
+    --accent-foreground: 144 100% 5%;
+    --destructive: 0 63% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 142 71% 45%;
+    --radius: 0.75rem;
+
+    --gold: 45 93% 58%;
+    --gold-light: 45 93% 70%;
+    --cyan: 187 92% 55%;
+    --cyan-light: 187 92% 70%;
+    --purple: 270 76% 60%;
+    --purple-light: 270 76% 75%;
+    --orange: 25 95% 53%;
+    --orange-light: 25 95% 68%;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 142 71% 45%;
+    --sidebar-primary-foreground: 144 100% 5%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 142 71% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+}
+
+@layer components {
+  .glow-button {
+    @apply bg-primary text-primary-foreground font-heading font-bold text-sm tracking-wider py-3 px-6 rounded-full transition-all duration-300;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  .glow-button:hover {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+    transform: translateY(-1px);
+  }
+}
