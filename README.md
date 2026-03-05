@@ -1,73 +1,50 @@
-# Welcome to your Lovable project
+# 🔧 Correções — PyBI Insight Hub
 
-## Project info
+## Como aplicar
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Substitua os arquivos abaixo no seu repositório GitHub pelos arquivos desta pasta,
+mantendo o mesmo caminho de diretório.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Arquivos corrigidos
 
-**Use Lovable**
+| Arquivo no repo | Correções aplicadas |
+|---|---|
+| `src/pages/LoginPage.tsx` | Fix #1: Verifica assinatura antes de redirecionar |
+| `src/pages/PaymentPage.tsx` | Fix #6: Polling automático para confirmar PIX |
+| `src/hooks/useSubscription.tsx` | Fix #6: Expõe `refetch()` para polling externo |
+| `supabase/functions/create-billing/index.ts` | Fix #1: `getUser()` em vez de `getClaims()` · Fix #2: `SUPABASE_ANON_KEY` correto · Fix #7: `origin` nunca é `null` |
+| `supabase/functions/abacatepay-webhook/index.ts` | Fix #4: Validação HMAC da assinatura do webhook · Fix #5: `.maybeSingle()` em vez de `.single()` |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## Variável de ambiente extra necessária no Supabase
 
-**Use your preferred IDE**
+Para ativar a validação de assinatura do webhook (Fix #4), adicione no painel do Supabase:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+ABACATEPAY_WEBHOOK_SECRET = <seu_webhook_secret_do_abacatepay>
 ```
 
-**Edit a file directly in GitHub**
+Acesse: **Supabase Dashboard → Edge Functions → Secrets**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Se essa variável não estiver configurada, o webhook ainda funciona (sem validação),
+mas fica vulnerável a chamadas falsas. Recomendado configurar em produção.
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Fluxo após as correções
 
-## What technologies are used for this project?
+```
+Usuário acessa qualquer rota
+    ↓ não autenticado
+    → /login
 
-This project is built with:
+    ↓ autenticado, SEM assinatura ativa
+    → /pagamento  (com polling automático a cada 5s aguardando PIX)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
+    ↓ autenticado, COM assinatura ativa
+    → /app  (acesso liberado)
+```
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
