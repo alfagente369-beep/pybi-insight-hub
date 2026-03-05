@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from || "/app";
   const { signIn, signUp, user } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +18,7 @@ const LoginPage = () => {
 
   // Redirect if already logged in
   if (user) {
-    navigate("/app", { replace: true });
+    navigate(from, { replace: true });
     return null;
   }
 
@@ -32,7 +34,7 @@ const LoginPage = () => {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        navigate("/app");
+        navigate(from);
       } else {
         const { error } = await signUp(email, password);
         if (error) throw error;
