@@ -12,9 +12,11 @@ interface Jogo {
 
 interface GeradorPanelProps {
   jogos: Jogo[];
+  onDownloadCSV: () => void;
+  onSalvarModelo: () => void;
 }
 
-export function GeradorPanel({ jogos }: GeradorPanelProps) {
+export function GeradorPanel({ jogos, onDownloadCSV, onSalvarModelo }: GeradorPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (dir: "up" | "down") => {
@@ -23,11 +25,31 @@ export function GeradorPanel({ jogos }: GeradorPanelProps) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 flex flex-col h-full">
-      <h3 className="font-heading text-sm font-bold text-foreground mb-3">Gerador</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-heading text-sm font-bold text-foreground">Gerador</h3>
+        {jogos.length > 0 && (
+          <div className="flex gap-2">
+            <button
+              onClick={onDownloadCSV}
+              className="bg-secondary hover:bg-muted text-foreground font-heading text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-md transition-colors"
+            >
+              Baixar CSV
+            </button>
+            <button
+              onClick={onSalvarModelo}
+              className="bg-secondary hover:bg-muted text-foreground font-heading text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-md transition-colors"
+            >
+              Salvar Modelo
+            </button>
+          </div>
+        )}
+      </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[280px]">
         {jogos.length === 0 ? (
-          <p className="text-muted-foreground text-xs text-center py-8">Nenhum jogo gerado ainda.</p>
+          <p className="text-muted-foreground text-xs text-center py-8">
+            Clique em "GERAR JOGOS" para criar combinações.
+          </p>
         ) : (
           jogos.map((j) => (
             <div key={j.id} className="flex items-start gap-2">
