@@ -36,13 +36,17 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: userError } = await anonClient.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Usuário não encontrado" }), {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Usuário não autenticado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const userId = claimsData.claims.sub as string;
+    const userEmail = claimsData.claims.email as string;
 
     const { amount, planName, returnUrl, completionUrl } = await req.json();
 
@@ -54,8 +58,8 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: user.email?.split("@")[0] || "Cliente",
-        email: user.email,
+        name: userEmail?.split("@")[0] || "Cliente",
+        email: userEmail,
         cellphone: "",
         taxId: "",
       }),
@@ -81,7 +85,7 @@ Deno.serve(async (req) => {
         methods: ["PIX"],
         products: [
           {
-            externalId: `plan_${planName}_${user.id}`,
+            externalId: `plan_${planName}_${userId}`,
             name: `Plano ${planName}`,
             description: `Assinatura do plano ${planName}`,
             quantity: 1,
@@ -105,7 +109,7 @@ Deno.serve(async (req) => {
 
     // 3. Save payment record in DB
     await supabaseClient.from("payments").insert({
-      user_id: user.id,
+      user_id: userId,
       billing_id: billingId,
       customer_id: customerId,
       amount: amount,
