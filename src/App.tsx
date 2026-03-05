@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import PerfilPage from "./pages/PerfilPage";
+import PaymentPage from "./pages/PaymentPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/pagamento" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
             <Route path="/app" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
