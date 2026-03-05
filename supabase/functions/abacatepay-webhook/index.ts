@@ -12,6 +12,20 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate webhook secret
+    const webhookSecret = Deno.env.get("ABACATEPAY_WEBHOOK_SECRET");
+    if (webhookSecret) {
+      const url = new URL(req.url);
+      const token = url.searchParams.get("token") || req.headers.get("x-webhook-secret");
+      if (token !== webhookSecret) {
+        console.error("Invalid webhook secret");
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -50,9 +64,8 @@ Deno.serve(async (req) => {
       if (payment) {
         const planName = (payment.metadata as any)?.plan || "premium";
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
+        expiresAt.setDate(expiresAt.getDate() + 30);
 
-        // Upsert subscription
         const { error: subError } = await supabase
           .from("subscriptions")
           .upsert(
