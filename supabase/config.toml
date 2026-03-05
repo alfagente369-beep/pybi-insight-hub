@@ -1,7 +1,0 @@
-project_id = "kgbnqbvqfgdwffddkxzy"
-
-[functions.abacatepay-webhook]
-verify_jwt = false
-
-[functions.create-billing]
-verify_jwt = false

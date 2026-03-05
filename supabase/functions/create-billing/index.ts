@@ -21,6 +21,8 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // FIX #2: Usar SUPABASE_ANON_KEY (não SUPABASE_PUBLISHABLE_KEY que não existe)
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     // Get user from auth header
     const authHeader = req.headers.get("authorization");
@@ -31,26 +33,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
-    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, {
+    // FIX #1: Usar getUser() em vez de getClaims() que não existe no Supabase JS v2
+    const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: userData, error: userError } = await anonClient.auth.getUser(token);
+
+    if (userError || !userData?.user) {
       return new Response(JSON.stringify({ error: "Usuário não autenticado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
-    const userEmail = claimsData.claims.email as string;
+    const userId = userData.user.id;
+    const userEmail = userData.user.email ?? "";
 
     const { amount, planName, returnUrl, completionUrl } = await req.json();
 
-    // 1. Create customer on AbacatePay
+    // FIX #7: Garantir que origin nunca seja null
+    const origin = req.headers.get("origin") ?? "https://seuapp.com";
+    const safeReturnUrl = returnUrl || `${origin}/app`;
+    const safeCompletionUrl = completionUrl || `${origin}/app`;
+
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    // 1. Criar cliente na AbacatePay
     const customerRes = await fetch(`${ABACATEPAY_API_URL}/customers/create`, {
       method: "POST",
       headers: {
@@ -73,7 +83,7 @@ Deno.serve(async (req) => {
 
     const customerId = customerData.data?.id;
 
-    // 2. Create billing on AbacatePay
+    // 2. Criar cobrança na AbacatePay
     const billingRes = await fetch(`${ABACATEPAY_API_URL}/billing/create`, {
       method: "POST",
       headers: {
@@ -89,11 +99,11 @@ Deno.serve(async (req) => {
             name: `Plano ${planName}`,
             description: `Assinatura do plano ${planName}`,
             quantity: 1,
-            price: amount, // in cents
+            price: amount, // em centavos
           },
         ],
-        returnUrl: returnUrl || `${req.headers.get("origin")}/app`,
-        completionUrl: completionUrl || `${req.headers.get("origin")}/app`,
+        returnUrl: safeReturnUrl,
+        completionUrl: safeCompletionUrl,
         customerId: customerId,
       }),
     });
@@ -107,7 +117,7 @@ Deno.serve(async (req) => {
     const billingId = billingData.data?.id;
     const checkoutUrl = billingData.data?.url;
 
-    // 3. Save payment record in DB
+    // 3. Salvar registro de pagamento no banco
     await supabaseClient.from("payments").insert({
       user_id: userId,
       billing_id: billingId,

@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as any)?.from || "/pagamento";
   const { signIn, signUp, user } = useAuth();
+  // FIX #1: Verificar assinatura antes de redirecionar
+  const { isActive, loading: subLoading } = useSubscription();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -17,10 +19,18 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      navigate(from, { replace: true });
+    // Aguardar carregamento da assinatura antes de redirecionar
+    if (user && !subLoading) {
+      if (isActive) {
+        // Assinatura ativa: vai para o app (ou para onde tentava ir)
+        const from = (location.state as any)?.from;
+        navigate(from && from !== "/login" ? from : "/app", { replace: true });
+      } else {
+        // Sem assinatura ativa: sempre vai para pagamento
+        navigate("/pagamento", { replace: true });
+      }
     }
-  }, [user, from, navigate]);
+  }, [user, isActive, subLoading, navigate, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +44,7 @@ const LoginPage = () => {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        navigate(from);
+        // Redirecionamento tratado pelo useEffect acima (após carregar assinatura)
       } else {
         const { error } = await signUp(email, password);
         if (error) throw error;
@@ -168,7 +178,7 @@ const LoginPage = () => {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || subLoading}
               className="glow-button w-full !rounded-lg flex items-center justify-center gap-2 !py-3 disabled:opacity-50"
             >
               {loading ? "Aguarde..." : isLogin ? "Entrar" : "Criar Conta"} <ArrowRight className="w-4 h-4" />

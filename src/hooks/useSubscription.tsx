@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -14,6 +14,31 @@ export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // FIX #6: Extrair fetch em função reutilizável para poder chamar manualmente (polling)
+  const fetchSubscription = useCallback(async () => {
+    if (!user) {
+      setSubscription(null);
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Erro ao carregar assinatura:", error.message);
+      setSubscription(null);
+      setLoading(false);
+      return;
+    }
+
+    setSubscription(data ?? null);
+    setLoading(false);
+  }, [user]);
+
   useEffect(() => {
     if (!user) {
       setSubscription(null);
@@ -23,29 +48,12 @@ export function useSubscription() {
 
     setLoading(true);
     setSubscription(null);
-
-    const fetchSubscription = async () => {
-      const { data, error } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Erro ao carregar assinatura:", error.message);
-        setSubscription(null);
-        setLoading(false);
-        return;
-      }
-
-      setSubscription(data ?? null);
-      setLoading(false);
-    };
-
     fetchSubscription();
-  }, [user]);
+  }, [user, fetchSubscription]);
 
-  const isActive = !!subscription && subscription.status === "active" &&
+  const isActive =
+    !!subscription &&
+    subscription.status === "active" &&
     (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
 
   const createCheckout = async (amount: number, planName: string) => {
@@ -60,5 +68,10 @@ export function useSubscription() {
     return data;
   };
 
-  return { subscription, loading, isActive, createCheckout };
+  // Expor refetch para uso externo (ex: polling no PaymentPage)
+  const refetch = useCallback(async () => {
+    await fetchSubscription();
+  }, [fetchSubscription]);
+
+  return { subscription, loading, isActive, createCheckout, refetch };
 }
