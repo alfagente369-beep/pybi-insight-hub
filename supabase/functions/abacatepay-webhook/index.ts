@@ -6,62 +6,31 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// FIX #4: Verificação de assinatura HMAC do webhook AbacatePay
-async function verifyWebhookSignature(
-  secret: string,
-  rawBody: string,
-  signature: string | null
-): Promise<boolean> {
-  if (!signature) return false;
-  try {
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(secret);
-    const messageData = encoder.encode(rawBody);
-    const cryptoKey = await crypto.subtle.importKey(
-      "raw",
-      keyData,
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"]
-    );
-    const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
-    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    return expectedSignature === signature;
-  } catch {
-    return false;
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // Validate webhook secret
     const webhookSecret = Deno.env.get("ABACATEPAY_WEBHOOK_SECRET");
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Ler body como texto para validar assinatura
-    const rawBody = await req.text();
-
-    // FIX #4: Validar assinatura do webhook (se secret estiver configurado)
     if (webhookSecret) {
-      const signature = req.headers.get("x-abacatepay-signature");
-      const isValid = await verifyWebhookSignature(webhookSecret, rawBody, signature);
-      if (!isValid) {
-        console.warn("Webhook com assinatura inválida — rejeitado.");
-        return new Response(JSON.stringify({ error: "Assinatura inválida" }), {
+      const url = new URL(req.url);
+      const token = url.searchParams.get("token") || req.headers.get("x-webhook-secret");
+      if (token !== webhookSecret) {
+        console.error("Invalid webhook secret");
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
 
-    const body = JSON.parse(rawBody);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body));
 
     // AbacatePay webhook payload
@@ -77,26 +46,25 @@ Deno.serve(async (req) => {
 
     const billingId = billing.id;
     const status = billing.status || event;
-    const isPaid = status === "PAID" || status === "billing.paid";
 
-    // FIX #5: Usar maybeSingle() para não lançar erro se registro não existir
+    // Update payment status
     const { data: payment, error: paymentError } = await supabase
       .from("payments")
-      .update({ status: isPaid ? "PAID" : status })
+      .update({ status: status === "PAID" || status === "billing.paid" ? "PAID" : status })
       .eq("billing_id", billingId)
       .select()
-      .maybeSingle();
+      .single();
 
     if (paymentError) {
       console.error("Error updating payment:", paymentError);
     }
 
-    // Se pago, ativar assinatura
-    if (isPaid) {
+    // If paid, activate subscription
+    if (status === "PAID" || status === "billing.paid") {
       if (payment) {
         const planName = (payment.metadata as any)?.plan || "premium";
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 30); // 30 dias
+        expiresAt.setDate(expiresAt.getDate() + 30);
 
         const { error: subError } = await supabase
           .from("subscriptions")
@@ -107,7 +75,6 @@ Deno.serve(async (req) => {
               status: "active",
               payment_id: payment.id,
               expires_at: expiresAt.toISOString(),
-              updated_at: new Date().toISOString(),
             },
             { onConflict: "user_id" }
           );
@@ -117,9 +84,6 @@ Deno.serve(async (req) => {
         } else {
           console.log(`Subscription activated for user ${payment.user_id}`);
         }
-      } else {
-        // FIX #5: Pagamento não encontrado — logar para investigação
-        console.warn(`Payment not found for billing_id: ${billingId}. Webhook ignored.`);
       }
     }
 
