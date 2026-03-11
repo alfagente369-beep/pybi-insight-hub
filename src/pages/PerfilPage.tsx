@@ -3,8 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trophy, Target, TrendingUp, Star, LogOut } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { ArrowLeft, Trophy, Target, TrendingUp, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 
@@ -27,7 +26,6 @@ interface ResultadoHistorico {
 
 const PerfilPage = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
   const [jogos, setJogos] = useState<JogoHistorico[]>([]);
   const [resultados, setResultados] = useState<ResultadoHistorico[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,37 +49,22 @@ const PerfilPage = () => {
     ? (resultados.reduce((acc, r) => acc + r.melhor_acerto, 0) / resultados.length).toFixed(1)
     : "0";
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/");
-  };
-
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/app")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="font-heading text-2xl md:text-3xl font-black text-primary tracking-wider">
-                MEU PERFIL
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {user?.email}
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
-            <LogOut className="w-4 h-4" /> Sair
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/app")}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-5 h-5" />
           </Button>
+          <h1 className="font-heading text-2xl md:text-3xl font-black text-primary tracking-wider">
+            MEU PERFIL
+          </h1>
         </div>
 
         {/* Cards de resumo */}
@@ -126,7 +109,6 @@ const PerfilPage = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Aba Histórico */}
           <TabsContent value="historico">
             <Card>
               <CardHeader className="pb-3">
@@ -143,19 +125,14 @@ const PerfilPage = () => {
                   </p>
                 ) : (
                   jogos.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between bg-muted/50 rounded-lg p-3 border border-border"
-                    >
+                    <div key={item.id} className="flex items-center justify-between bg-muted/50 rounded-lg p-3 border border-border">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs text-muted-foreground">
                             {new Date(item.created_at).toLocaleString("pt-BR")}
                           </span>
                           {item.concurso && (
-                            <Badge variant="outline" className="text-xs">
-                              Concurso {item.concurso}
-                            </Badge>
+                            <Badge variant="outline" className="text-xs">Concurso {item.concurso}</Badge>
                           )}
                         </div>
                         <span className="text-sm text-foreground">
@@ -169,7 +146,6 @@ const PerfilPage = () => {
             </Card>
           </TabsContent>
 
-          {/* Aba Resultados */}
           <TabsContent value="resultados">
             <Card>
               <CardHeader className="pb-3">
@@ -186,30 +162,19 @@ const PerfilPage = () => {
                   </p>
                 ) : (
                   resultados.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between bg-muted/50 rounded-lg p-3 border border-border"
-                    >
+                    <div key={item.id} className="flex items-center justify-between bg-muted/50 rounded-lg p-3 border border-border">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs text-muted-foreground">
                             {new Date(item.created_at).toLocaleString("pt-BR")}
                           </span>
-                          <Badge variant="outline" className="text-xs">
-                            Concurso {item.concurso}
-                          </Badge>
+                          <Badge variant="outline" className="text-xs">Concurso {item.concurso}</Badge>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span
-                          className={`text-lg font-heading font-black ${
-                            item.melhor_acerto >= 14
-                              ? "text-primary"
-                              : item.melhor_acerto >= 12
-                              ? "text-secondary"
-                              : "text-muted-foreground"
-                          }`}
-                        >
+                        <span className={`text-lg font-heading font-black ${
+                          item.melhor_acerto >= 14 ? "text-primary" : item.melhor_acerto >= 12 ? "text-secondary" : "text-muted-foreground"
+                        }`}>
                           {item.melhor_acerto}
                         </span>
                         <span className="text-xs text-muted-foreground ml-1">acertos</span>
